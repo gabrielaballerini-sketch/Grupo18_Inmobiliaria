@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Capotes\\Desktop\\programac-2025\\Programacion_WEBB\\Codigos\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj": {}
+    "C:\\Users\\Brian D\\Documents\\Html1\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Capotes\\Desktop\\programac-2025\\Programacion_WEBB\\Codigos\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj": {
+    "C:\\Users\\Brian D\\Documents\\Html1\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Capotes\\Desktop\\programac-2025\\Programacion_WEBB\\Codigos\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj",
+        "projectUniqueName": "C:\\Users\\Brian D\\Documents\\Html1\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj",
         "projectName": "Grupo18_Inmobiliaria",
-        "projectPath": "C:\\Users\\Capotes\\Desktop\\programac-2025\\Programacion_WEBB\\Codigos\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj",
-        "packagesPath": "C:\\Users\\Capotes\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Capotes\\Desktop\\programac-2025\\Programacion_WEBB\\Codigos\\Grupo18_Inmobiliaria\\obj\\",
+        "projectPath": "C:\\Users\\Brian D\\Documents\\Html1\\Grupo18_Inmobiliaria\\Grupo18_Inmobiliaria.csproj",
+        "packagesPath": "C:\\Users\\Brian D\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Brian D\\Documents\\Html1\\Grupo18_Inmobiliaria\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Capotes\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Brian D\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
