@@ -1,11 +1,17 @@
+
+//creamos el objeto builder simil constructor
+//configuramos
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//indicamos q va haber controller y vistas
 builder.Services.AddControllersWithViews();
 
+
+// construimos la aplicacion
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//Si NO estoy trabajando en desarrollo.
+//Entonces configura determinadas cosas para producción.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -13,11 +19,19 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+//Si alguien intenta entrar por HTTP, redirigilo a HTTPS.
+
 app.UseHttpsRedirection();
+
+//habilitamos rutas
 app.UseRouting();
 
+
+//Esto tiene que ver con qué puede hacer un usuario dependiendo de sus permisos.
 app.UseAuthorization();
 
+
+//Esto permite manejar recursos estáticos de la aplicación.
 app.MapStaticAssets();
 
 app.MapControllerRoute(
@@ -25,5 +39,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
+//arranca la aplicacion
 app.Run();
