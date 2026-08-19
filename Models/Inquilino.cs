@@ -12,7 +12,7 @@ namespace Inmobiliaria.Models
         public string Telefono { get; set; } = "";
         [Required, EmailAddress]
         public string Email { get; set; } = "";
-        public List<string> ListaReservas { get; set; } = new List<string>();
+        public List<Reserva> ListaReservas { get; set; } = new List<Reserva>();
         public override string ToString()
         {
             var res = $"{Nombre} {Apellido}";
