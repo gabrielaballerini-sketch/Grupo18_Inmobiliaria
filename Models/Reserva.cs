@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace Inmobiliaria.Models
+namespace Grupo18_Inmobiliaria.Models
 {
     public class Reserva
     {
@@ -11,7 +11,9 @@ namespace Inmobiliaria.Models
         public decimal MontoDiario { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
-        public List<string> PagosEfectuados { get; set; } = new List<string>();
+        public List<Pago> PagosEfectuados { get; set; } = new List<Pago>();
+        public int IdUsuario {get;set;}
+        public Usuario Usuario {get;set;}=new Usuario();
 
     }
 }

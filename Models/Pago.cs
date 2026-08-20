@@ -1,12 +1,12 @@
 using System.ComponentModel.DataAnnotations;
-namespace Inmobiliaria.Models
+namespace Grupo18_Inmobiliaria.Models
 {
     public class Pago
     {
 
         public int Id { get; set; }
         [Required]
-        public decimal PagoPArcial { get; set; }
+        public decimal PagoParcial { get; set; }
         [Required]
         public decimal PagoTotal { get; set; }
         [Required]

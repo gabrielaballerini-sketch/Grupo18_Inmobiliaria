@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace Inmobiliaria.Models
+namespace Grupo18_Inmobiliaria.Models
 {
     public class Inmueble
     {
@@ -13,7 +13,7 @@ namespace Inmobiliaria.Models
         public TipoInmueble TipoInmueble { get; set; }
         public float Coordenadas { get; set; }
         public decimal PrecioAlquiler { get; set; }
-        public int PropietarioId { get; set; }
+        public int IdPropietario { get; set; }
         public Propietario Propietario { get; set; } = new Propietario();
         public bool Estado { get; set; }
         public List<string> ListaReservas { get; set; } = new List<string>();

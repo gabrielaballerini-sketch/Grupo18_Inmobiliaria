@@ -1,4 +1,4 @@
-namespace Inmobiliaria.Models
+namespace Grupo18_Inmobiliaria.Models
 {
     public enum RoLUsuario
     {
