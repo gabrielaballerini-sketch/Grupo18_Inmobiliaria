@@ -1,12 +1,14 @@
 
 //creamos el objeto builder simil constructor
 //configuramos
+using Grupo18_Inmobiliaria.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 //indicamos q va haber controller y vistas
 builder.Services.AddControllersWithViews();
 
-
+builder.Services.AddScoped<RepositorioPropietarioMySql>();
 // construimos la aplicacion
 var app = builder.Build();
 

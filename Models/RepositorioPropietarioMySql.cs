@@ -73,7 +73,7 @@ namespace Grupo18_Inmobiliaria.Models
                    new MySqlConnection(connectionString))
             {
                 string sql = @"
-                    DELETE FROM Propietarios
+                    UPDATE Propietarios SET Estado=false
                     WHERE IdPropietario = @id
                 ";
 
@@ -146,7 +146,57 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-  }
+  
+
+
+public List<Propietario> ObtenerTodos()
+{
+    var propietarios = new List<Propietario>();
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string query = @"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
+                        FROM Propietarios 
+                        WHERE Estado = 1;";
+
+        using (var command = new MySqlCommand(query, connection))
+        {
+            connection.Open();
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var propietario = new Propietario
+                    {
+                        IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.IdPropietario))),
+                        Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
+                        Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
+                        Dni = reader.GetString(reader.GetOrdinal(nameof(Propietario.Dni))),
+                        Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Propietario.Telefono))) 
+                            ? string.Empty
+                            : reader.GetString(reader.GetOrdinal(nameof(Propietario.Telefono))),
+                        Email = reader.GetString(reader.GetOrdinal(nameof(Propietario.Email))),
+                        Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Propietario.Estado)))
+                    };
+                    propietarios.Add(propietario);
+                }
             }
+        }
+    }
+
+    return propietarios;
+}
+
+
+    }
+}
+
+
+
+
+
+
+
+            
 
        

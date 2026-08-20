@@ -20,12 +20,16 @@ public class HomeController : Controller
 
     // IActionResult: Es el tipo de dato que devuelven
     //  los métodos en un controlador MVC (en Java dirías algo como el tipo de retorno). Significa "Resultado de una Acción".
-    public IActionResult Index()
-    {
+   
 
-        //Busca la pantalla que se llama igual que el método.
-        return View();
-    }
+    public IActionResult Index()
+{
+    return View();
+}
+
+
+
+
 
 
 //Para Index(), busca el archivo Views/Home/Index.cshtml.

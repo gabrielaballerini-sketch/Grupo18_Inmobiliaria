@@ -1,2 +1,32 @@
-<h1> Bienvenidos </h1>
-
+@model List<Grupo18_Inmobiliaria.Models.Propietario>
+<h1>Propietarios</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Dni</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Telefono</th>
+            <th>Email</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var propietario in Model)
+    {
+        <tr>
+            <td>@propietario.IdPropietario</td>
+            <td>@propietario.Dni</td>
+            <td>@propietario.Nombre</td>
+            <td>@propietario.Apellido</td>
+            <td>@propietario.Telefono</td>
+            <td>@propietario.Email</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@propietario.IdPropietario">Editar</a>
+                <a asp-action="Delete" asp-route-id="@propietario.IdPropietario">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

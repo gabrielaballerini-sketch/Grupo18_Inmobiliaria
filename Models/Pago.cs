@@ -4,7 +4,7 @@ namespace Grupo18_Inmobiliaria.Models
     public class Pago
     {
 
-        public int Id { get; set; }
+        public int IdPago { get; set; }
         [Required]
         public decimal PagoParcial { get; set; }
         [Required]
@@ -14,5 +14,7 @@ namespace Grupo18_Inmobiliaria.Models
         public TipoPago TipoPago { get; set; }
         public Reserva Reserva { get; set; } = new Reserva();
         public int IdReserva { get; set; }
+
+        public bool Estado { get; set; } = true;
     }
 }

@@ -3,7 +3,7 @@ namespace Grupo18_Inmobiliaria.Models
 {
     public class Reserva
     {
-        public int Id { get; set; }
+        public int IdReserva { get; set; }
         public Inquilino Inquilino { get; set; } = new Inquilino();
         public int IdInquilino { get; set; }
         public Inmueble Inmueble { get; set; } = new Inmueble();
@@ -13,6 +13,8 @@ namespace Grupo18_Inmobiliaria.Models
         public DateTime FechaFin { get; set; }
         public List<Pago> PagosEfectuados { get; set; } = new List<Pago>();
         public int IdUsuario {get;set;}
+
+        public bool Estado { get; set; } = true;
         public Usuario Usuario {get;set;}=new Usuario();
 
     }

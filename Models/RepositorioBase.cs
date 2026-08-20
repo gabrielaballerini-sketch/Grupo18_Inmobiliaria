@@ -11,8 +11,8 @@ namespace Grupo18_Inmobiliaria.Models
         {
             this.configuration = configuration;
 
-            connectionString =
-                configuration["ConnectionStrings:DefaultConnection"];
+            connectionString = configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Falta la connection string DefaultConnection");
         }
     }
 }

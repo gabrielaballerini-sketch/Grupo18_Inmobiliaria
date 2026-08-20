@@ -3,7 +3,7 @@ namespace Grupo18_Inmobiliaria.Models
 {
     public class Inmueble
     {
-        public int Id { get; set; }
+        public int IdInmueble { get; set; }
         [Display(Name = "Dirección")]
         [Required(ErrorMessage = "La dirección es requerida")]
         public string Direccion { get; set; } = "";
