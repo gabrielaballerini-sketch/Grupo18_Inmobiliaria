@@ -5,12 +5,9 @@ using MySqlConnector;
 
 namespace Grupo18_Inmobiliaria.Models
 {
-    public class RepositorioPropietarioMySql
-        : RepositorioBase
+    public class RepositorioPropietarioMySql : RepositorioBase
     {
-        public RepositorioPropietarioMySql(
-            IConfiguration configuration
-        ) : base(configuration)
+        public RepositorioPropietarioMySql(IConfiguration configuration) : base(configuration)
         {
         }
 
@@ -19,43 +16,30 @@ namespace Grupo18_Inmobiliaria.Models
         {
             int res = -1;
 
-            using (var connection =
-                   new MySqlConnection(connectionString))
+            using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
                     INSERT INTO Propietarios
-                    (Nombre, Apellido, Dni, Telefono, Email)
+                    (Nombre, Apellido, Dni, Telefono, Email, Estado)
                     VALUES
-                    (@nombre, @apellido, @dni, @telefono, @email);
+                    (@nombre, @apellido, @dni, @telefono, @email, 1);
 
                     SELECT LAST_INSERT_ID();
                 ";
 
-                using (var command =
-                       new MySqlCommand(sql, connection))
+                using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
 
-                    command.Parameters.AddWithValue(
-                        "@nombre", p.Nombre);
-
-                    command.Parameters.AddWithValue(
-                        "@apellido", p.Apellido);
-
-                    command.Parameters.AddWithValue(
-                        "@dni", p.Dni);
-
-                    command.Parameters.AddWithValue(
-                        "@telefono", p.Telefono);
-
-                    command.Parameters.AddWithValue(
-                        "@email", p.Email);
+                    command.Parameters.AddWithValue("@nombre", p.Nombre);
+                    command.Parameters.AddWithValue("@apellido", p.Apellido);
+                    command.Parameters.AddWithValue("@dni", p.Dni);
+                    command.Parameters.AddWithValue("@telefono", p.Telefono ?? string.Empty);
+                    command.Parameters.AddWithValue("@email", p.Email);
 
                     connection.Open();
 
-                    res = Convert.ToInt32(
-                        command.ExecuteScalar());
-
+                    res = Convert.ToInt32(command.ExecuteScalar());
                     p.IdPropietario = res;
                 }
             }
@@ -63,30 +47,25 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-
-        // BAJA
+        // BAJA LÓGICA
         public int Baja(int id)
         {
             int res = -1;
 
-            using (var connection =
-                   new MySqlConnection(connectionString))
+            using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
-                    UPDATE Propietarios SET Estado=false
+                    UPDATE Propietarios 
+                    SET Estado = false
                     WHERE IdPropietario = @id
                 ";
 
-                using (var command =
-                       new MySqlCommand(sql, connection))
+                using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
-
-                    command.Parameters.AddWithValue(
-                        "@id", id);
+                    command.Parameters.AddWithValue("@id", id);
 
                     connection.Open();
-
                     res = command.ExecuteNonQuery();
                 }
             }
@@ -94,14 +73,12 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-
         // MODIFICACIÓN
         public int Modificacion(Propietario p)
         {
             int res = -1;
 
-            using (var connection =
-                   new MySqlConnection(connectionString))
+            using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
                     UPDATE Propietarios
@@ -114,31 +91,18 @@ namespace Grupo18_Inmobiliaria.Models
                     WHERE IdPropietario = @id
                 ";
 
-                using (var command =
-                       new MySqlCommand(sql, connection))
+                using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
 
-                    command.Parameters.AddWithValue(
-                        "@nombre", p.Nombre);
-
-                    command.Parameters.AddWithValue(
-                        "@apellido", p.Apellido);
-
-                    command.Parameters.AddWithValue(
-                        "@dni", p.Dni);
-
-                    command.Parameters.AddWithValue(
-                        "@telefono", p.Telefono);
-
-                    command.Parameters.AddWithValue(
-                        "@email", p.Email);
-
-                    command.Parameters.AddWithValue(
-                        "@id", p.IdPropietario);
+                    command.Parameters.AddWithValue("@nombre", p.Nombre);
+                    command.Parameters.AddWithValue("@apellido", p.Apellido);
+                    command.Parameters.AddWithValue("@dni", p.Dni);
+                    command.Parameters.AddWithValue("@telefono", p.Telefono ?? string.Empty);
+                    command.Parameters.AddWithValue("@email", p.Email);
+                    command.Parameters.AddWithValue("@id", p.IdPropietario);
 
                     connection.Open();
-
                     res = command.ExecuteNonQuery();
                 }
             }
@@ -146,57 +110,83 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-  
-
-
-public List<Propietario> ObtenerTodos()
-{
-    var propietarios = new List<Propietario>();
-
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string query = @"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
-                        FROM Propietarios 
-                        WHERE Estado = 1;";
-
-        using (var command = new MySqlCommand(query, connection))
+        // OBTENER TODOS
+        public List<Propietario> ObtenerTodos()
         {
-            connection.Open();
-            using (var reader = command.ExecuteReader())
+            var propietarios = new List<Propietario>();
+
+            using (var connection = new MySqlConnection(connectionString))
             {
-                while (reader.Read())
+                string query = @"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
+                                FROM Propietarios 
+                                WHERE Estado = 1;";
+
+                using (var command = new MySqlCommand(query, connection))
                 {
-                    var propietario = new Propietario
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
                     {
-                        IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.IdPropietario))),
-                        Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
-                        Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
-                        Dni = reader.GetString(reader.GetOrdinal(nameof(Propietario.Dni))),
-                        Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Propietario.Telefono))) 
-                            ? string.Empty
-                            : reader.GetString(reader.GetOrdinal(nameof(Propietario.Telefono))),
-                        Email = reader.GetString(reader.GetOrdinal(nameof(Propietario.Email))),
-                        Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Propietario.Estado)))
-                    };
-                    propietarios.Add(propietario);
+                        while (reader.Read())
+                        {
+                            var propietario = new Propietario
+                            {
+                                IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.IdPropietario))),
+                                Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
+                                Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
+                                Dni = reader.GetString(reader.GetOrdinal(nameof(Propietario.Dni))),
+                                Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Propietario.Telefono)))
+                                    ? string.Empty
+                                    : reader.GetString(reader.GetOrdinal(nameof(Propietario.Telefono))),
+                                Email = reader.GetString(reader.GetOrdinal(nameof(Propietario.Email))),
+                                Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Propietario.Estado)))
+                            };
+                            propietarios.Add(propietario);
+                        }
+                    }
                 }
             }
+
+            return propietarios;
+        }
+
+        // OBTENER POR ID (AHORA DENTRO DE LA CLASE)
+        public Propietario? ObtenerPorId(int id)
+        {
+            Propietario? propietario = null;
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = @"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
+                                FROM Propietarios 
+                                WHERE IdPropietario = @id AND Estado = 1;";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            propietario = new Propietario
+                            {
+                                IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.IdPropietario))),
+                                Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
+                                Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
+                                Dni = reader.GetString(reader.GetOrdinal(nameof(Propietario.Dni))),
+                                Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Propietario.Telefono)))
+                                    ? string.Empty
+                                    : reader.GetString(reader.GetOrdinal(nameof(Propietario.Telefono))),
+                                Email = reader.GetString(reader.GetOrdinal(nameof(Propietario.Email))),
+                                Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Propietario.Estado)))
+                            };
+                        }
+                    }
+                }
+            }
+
+            return propietario;
         }
     }
-
-    return propietarios;
 }
-
-
-    }
-}
-
-
-
-
-
-
-
-            
-
-       
