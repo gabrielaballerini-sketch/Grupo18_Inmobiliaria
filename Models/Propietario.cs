@@ -7,13 +7,21 @@ namespace Grupo18_Inmobiliaria.Models
         [Key]
         [Display(Name = "Código Int.")]
         public int IdPropietario { get; set; }
-        [Required]
+        [Required] 
+        [RegularExpression(@"^[a-zA-ZñÑ\s]+$",
+        ErrorMessage ="El nombre solo puede contener letras y espacios")]
         public string Nombre { get; set; } = "";
-        [Required]
+        [Required] 
+        [RegularExpression(@"^[a-zA-ZñÑ\s]+$",
+        ErrorMessage ="El apellido solo puede tener letras y espacios")]
         public string Apellido { get; set; } = "";
         [Required]
+        [Range(10000000, 99999999,
+        ErrorMessage = "El DNI debe tener 8 números.")]
         public string Dni { get; set; } = "";
-        [Display(Name = "Teléfono")]
+        [Required] 
+        [RegularExpression(@"^\d{10}$",
+        ErrorMessage ="El telefono es numerico y puede tener 10 digitos ")]
         public string Telefono { get; set; } = "";
         [Required, EmailAddress]
         public string Email { get; set; } = "";

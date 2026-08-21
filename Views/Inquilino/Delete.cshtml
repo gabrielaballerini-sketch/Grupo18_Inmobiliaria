@@ -1,0 +1,34 @@
+@model Inquilino
+
+@{
+    ViewData["Title"] = "Eliminar Inquilino";
+}
+
+<h2>Dar de Baja Inquilino</h2>
+
+<div class="alert alert-warning" role="alert">
+    ¿Estás seguro de que deseas dar de baja este registro?
+</div>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Nombre</dt>
+        <dd class="col-sm-9">@Model.Nombre @Model.Apellido</dd>
+
+        <dt class="col-sm-3">DNI</dt>
+        <dd class="col-sm-9">@Model.Dni</dd>
+
+        <dt class="col-sm-3">Teléfono</dt>
+        <dd class="col-sm-9">@Model.Telefono</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.Email</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="IdInquilino" />
+        <input type="submit" value="Confirmar Baja" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
