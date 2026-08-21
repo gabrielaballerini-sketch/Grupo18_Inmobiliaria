@@ -1,5 +1,78 @@
-@using Grupo18_Inmobiliaria.Models
-<h1>Bienvenido </h1>
-@model Inquilino 
+@model List<Grupo18_Inmobiliaria.Models.Inquilino>
 
-<p> DNI:@Model.Nombre</p>
+@{
+    ViewData["Title"] = "Inquilinos";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Inquilinos</h1>
+
+        <a asp-action="Create" class="btn btn-primary">
+            Nuevo Inquilino
+        </a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No hay inquilinos registrados.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+
+            <table class="table table-striped table-hover align-middle">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>DNI</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var inquilino in Model)
+                    {
+                        <tr>
+                            <td>@inquilino.IdInquilino</td>
+                            <td>@inquilino.Dni</td>
+                            <td>@inquilino.Nombre</td>
+                            <td>@inquilino.Apellido</td>
+                            <td>@inquilino.Telefono</td>
+                            <td>@inquilino.Email</td>
+
+                            <td class="text-center">
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@inquilino.IdInquilino"
+                                   class="btn btn-warning btn-sm">
+                                    Editar
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@inquilino.IdInquilino"
+                                   class="btn btn-danger btn-sm">
+                                    Dar de baja
+                                </a>
+
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+
+</div>

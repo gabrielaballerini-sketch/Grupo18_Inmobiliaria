@@ -1,34 +1,86 @@
 @model Propietario
 
 @{
-    ViewData["Title"] = "Eliminar Propietario";
+    ViewData["Title"] = "Dar de Baja propietario";
 }
 
-<h2>Dar de Baja Propietario</h2>
+<div class="container mt-4">
 
-<div class="alert alert-warning" role="alert">
-    ¿Estás seguro de que deseas dar de baja este registro?
-</div>
+    <div class="card shadow">
 
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">Nombre</dt>
-        <dd class="col-sm-9">@Model.Nombre @Model.Apellido</dd>
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0">Dar de Baja Inquilino</h3>
+        </div>
 
-        <dt class="col-sm-3">DNI</dt>
-        <dd class="col-sm-9">@Model.Dni</dd>
+        <div class="card-body">
 
-        <dt class="col-sm-3">Teléfono</dt>
-        <dd class="col-sm-9">@Model.Telefono</dd>
+            <div class="alert alert-warning" role="alert">
+                <strong>Atención:</strong>
+                estás a punto de dar de baja este propietario.
+                El registro no será eliminado físicamente de la base de datos.
+            </div>
 
-        <dt class="col-sm-3">Email</dt>
-        <dd class="col-sm-9">@Model.Email</dd>
-    </dl>
+            <h5 class="mb-3">Datos del inquilino</h5>
 
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="IdPropietario" />
-        <input type="submit" value="Confirmar Baja" class="btn btn-danger" />
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-    </form>
+            <dl class="row">
+
+                <dt class="col-sm-3">
+                    ID
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.IdPropietario
+                </dd>
+
+                <dt class="col-sm-3">
+                    Nombre completo
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.Nombre @Model.Apellido
+                </dd>
+
+                <dt class="col-sm-3">
+                    DNI
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.Dni
+                </dd>
+
+                <dt class="col-sm-3">
+                    Teléfono
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.Telefono
+                </dd>
+
+                <dt class="col-sm-3">
+                    Email
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.Email
+                </dd>
+
+            </dl>
+
+            <hr />
+
+            <div class="d-flex gap-2">
+
+                <form asp-action="Delete" method="post">
+
+                    <input type="hidden" asp-for="IdPropietario" />
+
+                    <button type="submit" class="btn btn-danger">
+                        Confirmar Baja
+                    </button>
+
+                </form>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </div>
+    </div>
 </div>

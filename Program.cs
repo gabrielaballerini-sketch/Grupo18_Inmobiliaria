@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<RepositorioPropietarioMySql>();
+builder.Services.AddScoped<RepositorioInquilinoMySql>();
 // construimos la aplicacion
 var app = builder.Build();
 
