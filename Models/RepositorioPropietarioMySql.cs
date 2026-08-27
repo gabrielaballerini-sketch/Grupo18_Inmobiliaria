@@ -188,5 +188,23 @@ namespace Grupo18_Inmobiliaria.Models
 
             return propietario;
         }
+
+        public bool ObtenerporDni(string dni)
+        {
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = @"SELECT COUNT(*) FROM Propietarios WHERE Dni = @dni";
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@dni", dni);
+                    connection.Open();
+                    int cantidad = Convert.ToInt32(command.ExecuteScalar());
+                    return cantidad > 0;
+
+                }
+            }
+
+        }
     }
 }

@@ -44,6 +44,11 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return View(inquilino);
             }
+            if (repo.ObtenerporDni(inquilino.Dni))
+            {
+                ModelState.AddModelError("Dni", "El dni ya esta registrado");
+                return View(inquilino);
+            }
 
             repo.Alta(inquilino);
             return RedirectToAction(nameof(Index));
@@ -56,10 +61,11 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult Edit(int id)
         {
             // Pasa un objeto con el ID cargado para editar en la vista
-            var inquilino = new Inquilino
+            var inquilino = repo.ObtenerPorId(id);
+            if (inquilino == null)
             {
-                IdInquilino = id
-            };
+                return NotFound();
+            }
 
             return View(inquilino);
         }
@@ -80,7 +86,9 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
 
             repo.Modificacion(inquilino);
-            return RedirectToAction("Index", "Home");
+
+            TempData["Mensaje"] = "Inquilino modificado con éxito";
+            return RedirectToAction("Index");
         }
 
         // --- BAJA LÓGICA (DELETE) ---

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Grupo18_Inmobiliaria.Models;
+using Microsoft.JSInterop.Infrastructure;
 
 namespace Grupo18_Inmobiliaria.Controllers
 {
@@ -21,20 +22,20 @@ namespace Grupo18_Inmobiliaria.Controllers
             return View();
         }
 
-// GET: Propietario/Index
-       public IActionResult Index()
-{
-    try
-    {
-        var lista = repo.ObtenerTodos();
-        return View(lista);
-    }
-    catch (Exception ex)
-    {
-        return Content("ERROR: " + ex.Message);
-    }
-}
-       
+        // GET: Propietario/Index
+        public IActionResult Index()
+        {
+            try
+            {
+                var lista = repo.ObtenerTodos();
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
+
 
 
 
@@ -47,6 +48,12 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return View(propietario);
             }
+            if (repo.ObtenerporDni(propietario.Dni))
+            {
+                ModelState.AddModelError("Dni", "El dni ya esta registrado");
+                return View(propietario);
+            }
+
 
             repo.Alta(propietario);
             return RedirectToAction(nameof(Index));
@@ -59,7 +66,11 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult Edit(int id)
         {
             // Pasa un objeto con el ID cargado para editar en la vista
-            var propietario = new Propietario { IdPropietario = id };
+            var propietario = repo.ObtenerPorId(id);
+            if (propietario == null)
+            {
+                return NotFound();
+            }
             return View(propietario);
         }
 
@@ -79,7 +90,9 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
 
             repo.Modificacion(propietario);
-            return RedirectToAction("Index", "Home");
+
+            TempData["Mensaje"] = "Propietario modificado con éxito";
+            return RedirectToAction("Index");
         }
 
         // --- BAJA LÓGICA (DELETE) ---
