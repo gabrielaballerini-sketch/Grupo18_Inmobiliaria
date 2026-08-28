@@ -110,20 +110,25 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-        // OBTENER TODOS
-        public List<Propietario> ObtenerTodos()
+        // OBTENER TODOS los activos
+        public IList<Propietario> ObtenerActivos(int pagina = 1, int tamPagina = 10)
         {
-            var propietarios = new List<Propietario>();
+           IList<Propietario> propietarios = new List<Propietario>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string query = @"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
+                string query = $@"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
                                 FROM Propietarios 
-                                WHERE Estado = 1;";
+                                WHERE Estado = 1
+                                LIMIT {tamPagina} OFFSET {(pagina - 1) * tamPagina};";
+                                ;
 
                 using (var command = new MySqlCommand(query, connection))
-                {
-                    connection.Open();
+                 {
+                   command.CommandType = CommandType.Text;
+                   connection.Open();
+
+        
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
@@ -156,7 +161,7 @@ namespace Grupo18_Inmobiliaria.Models
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string query = @"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
+                string query = @$"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
                                 FROM Propietarios 
                                 WHERE IdPropietario = @id AND Estado = 1;";
 
@@ -206,5 +211,118 @@ namespace Grupo18_Inmobiliaria.Models
             }
 
         }
+// REACTIVACIÓN / ALTA LÓGICA
+public int Reactivar(int id)
+{
+    int res = -1;
+
+
+    using (var connection = new MySqlConnection(connectionString))
+   
+  {
+        string sql = @"
+            UPDATE Propietarios
+            SET Estado = true
+
+            WHERE IdPropietario = @id
+        ";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.CommandType = CommandType.Text;
+
+            command.Parameters.AddWithValue("@id", id);
+
+            connection.Open();
+            res = command.ExecuteNonQuery();
+        }
+    }
+
+    return res;
+}
+
+
+public IList<Propietario> ObtenerInactivos(int pagina = 1, int tamPagina = 10)
+{
+    var propietarios = new List<Propietario>();
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string query = $@"SELECT IdPropietario, Nombre, Apellido, Dni, Telefono, Email, Estado 
+                        FROM Propietarios 
+                        WHERE Estado = 0
+                        LIMIT {tamPagina} OFFSET {(pagina - 1) * tamPagina};";
+
+        using (var command = new MySqlCommand(query, connection))
+        {
+        
+               command.CommandType = CommandType.Text;
+               connection.Open();
+
+
+
+            
+            using (var reader = command.ExecuteReader())
+            {
+
+
+
+                while (reader.Read())
+                {
+                    var propietario = new Propietario
+                    {
+                        IdPropietario = reader.GetInt32(reader.GetOrdinal(nameof(Propietario.IdPropietario))),
+                        Nombre = reader.GetString(reader.GetOrdinal(nameof(Propietario.Nombre))),
+                        Apellido = reader.GetString(reader.GetOrdinal(nameof(Propietario.Apellido))),
+                        Dni = reader.GetString(reader.GetOrdinal(nameof(Propietario.Dni))),
+                        Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Propietario.Telefono)))
+                            ? string.Empty
+                            : reader.GetString(reader.GetOrdinal(nameof(Propietario.Telefono))),
+                        Email = reader.GetString(reader.GetOrdinal(nameof(Propietario.Email))),
+                        Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Propietario.Estado)))
+                    };
+                    propietarios.Add(propietario);
+                }
+            }
+        }
+    }
+
+    return propietarios;
+}
+
+
+// puedo contar activos, inactivos o si pongo null todos
+public int ObtenerCantidad(bool? soloActivos = true)
+{
+    int res = 0;
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = "SELECT COUNT(IdPropietario) FROM Propietarios";
+        
+        if (soloActivos.HasValue)
+        {
+            sql += " WHERE Estado = @estado";
+        }
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            if (soloActivos.HasValue)
+            {
+                command.Parameters.AddWithValue("@estado", soloActivos.Value ? 1 : 0);
+            }
+
+            command.CommandType = CommandType.Text;
+            connection.Open();
+            
+            // Para un COUNT único podés usar ExecuteScalar directamente en vez del DataReader:
+            res = Convert.ToInt32(command.ExecuteScalar());
+        }
+    }
+    return res;
+}
+
+
+
+
     }
 }

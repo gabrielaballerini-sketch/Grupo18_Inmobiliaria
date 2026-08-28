@@ -1,23 +1,23 @@
 @model List<Grupo18_Inmobiliaria.Models.Propietario>
 
 @{
-    ViewData["Title"] = "Propietarios";
+    ViewData["Title"] = "Propietarios Inactivos";
 }
 
 <div class="container mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Propietarios</h1>
+        <h1>Propietarios Inactivos</h1>
 
-        <a asp-action="Create" class="btn btn-primary">
-            Nuevo Propietario
+        <a asp-action="Index" class="btn btn-secondary">
+            Volver a Propietarios
         </a>
     </div>
 
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info">
-            No hay propietarios registrados.
+            No hay propietarios inactivos registrados.
         </div>
     }
     else
@@ -52,13 +52,18 @@
 
                             <td class="text-center">
 
-                                <a asp-action="Edit" asp-route-id="@propietario.IdPropietario" class="btn btn-warning btn-sm">
-                                    Editar
-                                </a>
+                                <form asp-action="Reactivar" asp-route-id="@propietario.IdPropietario" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success btn-sm;">
+                                        Reactivar / Alta
+                                    </button>
 
-                                <a asp-action="Delete" asp-route-id="@propietario.IdPropietario" class="btn btn-danger btn-sm">
-                                    Dar de baja
-                                </a>
+
+
+
+
+                                    
+                                </form>
 
                             </td>
                         </tr>
@@ -68,34 +73,29 @@
 
             </table>
 
-        </div>
 
-        <!-- Botones de Paginación -->
+</div>
 
+<!-- Botones de Paginación -->
 
-        <div class="mt-3 text-center">
-            @if (ViewBag.PaginaActual > 1)
-            {
-                <a asp-action="Index" asp-route-pagina="@(ViewBag.PaginaActual - 1)"
-                   class="btn btn-outline-primary me-2">Anterior</a>
-            }
-
-            @if (ViewBag.PaginaActual < ViewBag.TotalPaginas)
-            {
-                <a asp-action="Index" asp-route-pagina="@(ViewBag.PaginaActual + 1)"
-                   class="btn btn-outline-primary">Siguiente</a>
-            }
-        </div>
-
+<div class="mt-3 text-center">
+    @if (ViewBag.PaginaActual > 1)
+    {
+        <a asp-action="Inactivos" asp-route-pagina="@(ViewBag.PaginaActual - 1)" class="btn btn-outline-primary me-2">Anterior</a>
     }
 
+    @if (ViewBag.PaginaActual < ViewBag.TotalPaginas)
+    {
+        <a asp-action="Inactivos" asp-route-pagina="@(ViewBag.PaginaActual + 1)" class="btn btn-outline-primary">Siguiente</a>
+    }
 </div>
 
-<!-- BOTÓN INACTIVOS ABAJO DEL TODO -->
-<div class="mt-4 mb-3">
-    <a asp-action="Inactivos" class="btn btn-secondary">
-        <i class="bi bi-archive"></i> Ver Inactivos
-    </a>
-</div>
+}
 
 </div>
+
+
+
+    
+
+

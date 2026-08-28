@@ -8,10 +8,16 @@ namespace Grupo18_Inmobiliaria.Models
 
         int Modificacion(T entidad);
 
-        IList<T> ObtenerLista(
+        IList<T> ObtenerActivos(
             int pagina = 1,
             int tamPagina = 10
         );
+
+        IList<T> ObtenerInactivos(
+            int pagina = 1,
+            int tamPagina = 10
+        );
+
 
         int ObtenerCantidad();
 
