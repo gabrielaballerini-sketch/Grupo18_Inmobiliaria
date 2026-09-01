@@ -1,0 +1,34 @@
+@model Grupo18_Inmobiliaria.Models.TipoInmueble
+
+@{
+    ViewData["Title"] = "Eliminar Tipo de Inmueble";
+}
+
+<h2 class="text-danger">Eliminar Tipo de Inmueble</h2>
+<h4 class="text-muted">¿Estás seguro de que deseas dar de baja este registro?</h4>
+<hr />
+
+<div class="card col-md-6 border-danger mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 fw-bold">
+                ID:
+            </dt>
+            <dd class="col-sm-8">
+                @Model.IdTipoInmueble
+            </dd>
+            <dt class="col-sm-4 fw-bold">
+                Descripción:
+            </dt>
+            <dd class="col-sm-8">
+                @Model.Descripcion
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="IdTipoInmueble" />
+    <button type="submit" class="btn btn-danger">Confirmar Baja</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

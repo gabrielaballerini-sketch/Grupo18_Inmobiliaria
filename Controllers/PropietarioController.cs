@@ -109,8 +109,18 @@ namespace Grupo18_Inmobiliaria.Controllers
         // GET: Propietario/Delete/5
         [HttpGet]
         public IActionResult Delete(int id)
+     
+     
         {
-            var propietario = new Propietario { IdPropietario = id };
+            var propietario = repo.ObtenerPorId(id);
+
+       if (propietario == null)
+            {
+              return NotFound();
+             }
+
+
+
             return View(propietario);
         }
 

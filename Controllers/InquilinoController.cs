@@ -104,10 +104,15 @@ namespace Grupo18_Inmobiliaria.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            var inquilino = new Inquilino
+            var inquilino =repo.ObtenerPorId(id);
+
+
+            if (inquilino == null)
             {
-                IdInquilino = id
-            };
+              return NotFound();
+             }
+
+          
 
             return View(inquilino);
         }
