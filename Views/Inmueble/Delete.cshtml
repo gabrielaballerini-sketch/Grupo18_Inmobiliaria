@@ -1,42 +1,86 @@
 @model Grupo18_Inmobiliaria.Models.Inmueble
 
 @{
-    ViewData["Title"] = "Eliminar Inmueble";
+    ViewData["Title"] = "Dar de Baja Inmueble";
 }
 
-<h2>Desactivar Inmueble</h2>
+<div class="container mt-4">
 
-<div class="alert alert-warning" role="alert">
-    <strong>¿Estás seguro de que deseas dar de baja este inmueble?</strong>
-</div>
+    <div class="card shadow">
 
-<div class="card col-md-6 mb-3">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Direccion)</dt>
-            <dd class="col-sm-8">@Model.Direccion</dd>
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0">Dar de Baja Inmueble</h3>
+        </div>
 
-            <dt class="col-sm-4">Tipo</dt>
-            <dd class="col-sm-8">@(Model.TipoInmueble != null ? Model.TipoInmueble.Descripcion : "Sin Tipo")</dd>
+        <div class="card-body">
 
-            <dt class="col-sm-4">Propietario</dt>
-            <dd class="col-sm-8">@(Model.Propietario != null ? $"{Model.Propietario.Nombre} {Model.Propietario.Apellido}" : "Sin Propietario")</dd>
+            <div class="alert alert-warning" role="alert">
+                <strong>Atención:</strong>
+                estás a punto de dar de baja este inmueble.
+                El registro no será eliminado físicamente de la base de datos.
+            </div>
 
-            <dt class="col-sm-4">Capacidad</dt>
-            <dd class="col-sm-8">@Model.Capacidad pers.</dd>
+            <h5 class="mb-3">Datos del inmueble</h5>
 
-            <dt class="col-sm-4">Precio Alquiler</dt>
-            <dd class="col-sm-8">$@Model.PrecioAlquiler</dd>
+            <dl class="row">
 
-            <dt class="col-sm-4">Ubicación</dt>
-            <dd class="col-sm-8">Lat: @Model.Latitud, Long: @Model.Longitud</dd>
-        </dl>
+                <dt class="col-sm-3">
+                    Dirección
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.Direccion
+                </dd>
+
+                <dt class="col-sm-3">
+                    Tipo de Inmueble
+                </dt>
+                <dd class="col-sm-9">
+                    @(Model.TipoInmueble != null ? Model.TipoInmueble.Descripcion : "Sin Tipo")
+                </dd>
+
+                <dt class="col-sm-3">
+                    Propietario
+                </dt>
+                <dd class="col-sm-9">
+                    @(Model.Propietario != null ? $"{Model.Propietario.Nombre} {Model.Propietario.Apellido}" : "Sin Propietario")
+                </dd>
+
+                <dt class="col-sm-3">
+                    Capacidad
+                </dt>
+                <dd class="col-sm-9">
+                    @Model.Capacidad pers.
+                </dd>
+
+                <dt class="col-sm-3">
+                    Precio de Alquiler
+                </dt>
+                <dd class="col-sm-9">
+                    $@Model.PrecioAlquiler
+                </dd>
+
+            </dl>
+
+            <hr />
+
+            <div class="d-flex gap-2">
+
+                <form asp-action="Delete" method="post">
+
+                    <input type="hidden" asp-for="IdInmueble" />
+
+                    <button type="submit" class="btn btn-danger">
+                        Confirmar Baja
+                    </button>
+
+                </form>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </div>
     </div>
 </div>
-
-<form asp-action="Delete">
-    <!-- ID Oculto para enviar la baja al controlador -->
-    <input type="hidden" asp-for="IdInmueble" />
-    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Confirmar Baja</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-</form>

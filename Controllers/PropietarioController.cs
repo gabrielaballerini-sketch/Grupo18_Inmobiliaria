@@ -24,28 +24,28 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         // GET: Propietario/Index
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
-{
-    try
-    {
+        {
+            try
+            {
 
-//  Pedimos los registros para la página solicitada
-        var lista = repo.ObtenerActivos(pagina, tamPagina);
+                //  Pedimos los registros para la página solicitada
+                var lista = repo.ObtenerActivos(pagina, tamPagina);
 
-//  Contamos la cantidad tde activos, con true 
-        int totalRegistros = repo.ObtenerCantidad(true); 
+                //  Contamos la cantidad tde activos, con true 
+                int totalRegistros = repo.ObtenerCantidad(true);
 
 
-// Pasamos los datos a la vista para construir el paginador
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+                // Pasamos los datos a la vista para construir el paginador
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
-        return View(lista);
-    }
-    catch (Exception ex)
-    {
-        return Content("ERROR: " + ex.Message);
-    }
-}
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
 
 
         // POST: Propietario/Create
@@ -109,15 +109,15 @@ namespace Grupo18_Inmobiliaria.Controllers
         // GET: Propietario/Delete/5
         [HttpGet]
         public IActionResult Delete(int id)
-     
-     
+
+
         {
             var propietario = repo.ObtenerPorId(id);
 
-       if (propietario == null)
+            if (propietario == null)
             {
-              return NotFound();
-             }
+                return NotFound();
+            }
 
 
 
@@ -133,45 +133,45 @@ namespace Grupo18_Inmobiliaria.Controllers
             return RedirectToAction("Index");
         }
 
-// GET: Propietario/Inactivos
-public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
-{
-    try
-    {
-        var inactivos = repo.ObtenerInactivos(pagina, tamPagina);
-        
-        
-        int totalRegistros = repo.ObtenerCantidad(false); 
+        // GET: Propietario/Inactivos
+        public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                var inactivos = repo.ObtenerInactivos(pagina, tamPagina);
 
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
-        return View(inactivos);
-    }
-    catch (Exception ex)
-    {
-        return Content("ERROR: " + ex.Message);
-    }
-}
+                int totalRegistros = repo.ObtenerCantidad(false);
 
-// POST: Propietario/Reactivar/5
-[HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult Reactivar(int id)
-{
-    try
-    {
-      repo.Reactivar(id);
-        TempData["Mensaje"] = "Propietario reactivado con éxito.";
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] = "Error al reactivar el propietario.";
-    }
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
-    // Redirige siempre de vuelta a la lista de inactivos o a Index
-    return RedirectToAction(nameof(Inactivos));
-}
+                return View(inactivos);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
+
+        // POST: Propietario/Reactivar/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Reactivar(int id)
+        {
+            try
+            {
+                repo.Reactivar(id);
+                TempData["Mensaje"] = "Propietario reactivado con éxito.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al reactivar el propietario." + ex.Message;
+            }
+
+            // Redirige siempre de vuelta a la lista de inactivos o a Index
+            return RedirectToAction(nameof(Inactivos));
+        }
 
 
 

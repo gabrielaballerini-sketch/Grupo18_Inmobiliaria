@@ -24,28 +24,28 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         // GET: tipoInmueble/Index
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
-{
-    try
-    {
+        {
+            try
+            {
 
-//  Pedimos los registros para la página solicitada
-        var lista = repo.ObtenerActivos(pagina, tamPagina);
+                //  Pedimos los registros para la página solicitada
+                var lista = repo.ObtenerActivos(pagina, tamPagina);
 
-//  Contamos la cantidad tde activos, con true 
-        int totalRegistros = repo.ObtenerCantidad(true); 
+                //  Contamos la cantidad tde activos, con true 
+                int totalRegistros = repo.ObtenerCantidad(true);
 
 
-// Pasamos los datos a la vista para construir el paginador
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+                // Pasamos los datos a la vista para construir el paginador
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
-        return View(lista);
-    }
-    catch (Exception ex)
-    {
-        return Content("ERROR: " + ex.Message);
-    }
-}
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
 
 
         // POST: tipoInmueble/Create
@@ -57,8 +57,8 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return View(tipoInmueble);
             }
-                   
-                
+
+
             repo.Alta(tipoInmueble);
             return RedirectToAction(nameof(Index));
         }
@@ -106,10 +106,10 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult Delete(int id)
         {
             var tipoInmueble = repo.ObtenerPorId(id);
-          if (tipoInmueble == null)
+            if (tipoInmueble == null)
             {
-              return NotFound();
-             }
+                return NotFound();
+            }
 
             return View(tipoInmueble);
         }
@@ -123,54 +123,45 @@ namespace Grupo18_Inmobiliaria.Controllers
             return RedirectToAction("Index");
         }
 
-// GET: TipoInmueble/Inactivos
-public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
-{
-    try
-    {
-        var inactivos = repo.ObtenerInactivos(pagina, tamPagina);
-        
-        
-        int totalRegistros = repo.ObtenerCantidad(false); 
-
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
-
-        return View(inactivos);
-    }
-    catch (Exception ex)
-    {
-        return Content("ERROR: " + ex.Message);
-    }
-}
-
-// POST: TipoInmueble/Reactivar/5
-[HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult Reactivar(int id)
-{
-    try
-    {
-      repo.Reactivar(id);
-        TempData["Mensaje"] = "Propietario reactivado con éxito.";
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] = "Error al reactivar el propietario.";
-    }
-
-    // Redirige siempre de vuelta a la lista de inactivos o a Index
-    return RedirectToAction(nameof(Inactivos));
-}
+        // GET: TipoInmueble/Inactivos
+        public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                var inactivos = repo.ObtenerInactivos(pagina, tamPagina);
 
 
+                int totalRegistros = repo.ObtenerCantidad(false);
 
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
+                return View(inactivos);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
 
+        // POST: TipoInmueble/Reactivar/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Reactivar(int id)
+        {
+            try
+            {
+                repo.Reactivar(id);
+                TempData["Mensaje"] = "Propietario reactivado con éxito.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al reactivar el propietario." + ex.Message;
+            }
 
-
-
-
+            // Redirige siempre de vuelta a la lista de inactivos o a Index
+            return RedirectToAction(nameof(Inactivos));
+        }
 
 
     }

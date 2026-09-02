@@ -6,19 +6,19 @@ namespace Grupo18_Inmobiliaria.Controllers
 {
     public class InmuebleController : Controller
     {
-         private readonly RepositorioInmuebleMySql repo_Inmueble;
+        private readonly RepositorioInmuebleMySql repo_Inmueble;
         private readonly RepositorioPropietarioMySql repo_Propietario;
         private readonly RepositorioTipoInmuebleMySql repo_Tipo;
 
-        public InmuebleController(RepositorioInmuebleMySql repoInmueble,RepositorioPropietarioMySql repoPropietario,RepositorioTipoInmuebleMySql repoTipo)
+        public InmuebleController(RepositorioInmuebleMySql repoInmueble, RepositorioPropietarioMySql repoPropietario, RepositorioTipoInmuebleMySql repoTipo)
         {
             this.repo_Inmueble = repoInmueble;
-            this.repo_Propietario=repoPropietario;
-            this.repo_Tipo=repoTipo;
+            this.repo_Propietario = repoPropietario;
+            this.repo_Tipo = repoTipo;
 
         }
 
- public IActionResult Index(int pagina = 1, int tamPagina = 10)
+        public IActionResult Index(int pagina = 1, int tamPagina = 10)
         {
             try
             {
@@ -45,15 +45,19 @@ namespace Grupo18_Inmobiliaria.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-             CargarDesplegables();
+            CargarDesplegables();
             return View();
         }
 
-// POST: Inmueble/Create
+        // POST: Inmueble/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Inmueble inmueble)
         {
+            ModelState.Remove("Propietario");
+            ModelState.Remove("TipoInmueble");
+            ModelState.Remove("ListaReservas");
+
             if (!ModelState.IsValid)
             {
                 CargarDesplegables(inmueble.IdPropietario, inmueble.IdTipoInmueble);
@@ -90,15 +94,15 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return NotFound();
             }
-           
+
             CargarDesplegables(Inmueble.IdPropietario, Inmueble.IdTipoInmueble);
             return View(Inmueble);
         }
 
-        
 
 
- // POST: Inmueble/Edit/5
+
+        // POST: Inmueble/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Inmueble inmueble)
@@ -107,6 +111,10 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return NotFound();
             }
+
+            ModelState.Remove("Propietario");
+            ModelState.Remove("TipoInmueble");
+            ModelState.Remove("ListaReservas");
 
             if (!ModelState.IsValid)
             {
@@ -138,18 +146,18 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult Delete(int id)
         {
             var Inmueble = repo_Inmueble.ObtenerPorId(id);
-          if (Inmueble == null)
+            if (Inmueble == null)
             {
-              return NotFound();
-             }
+                return NotFound();
+            }
 
             return View(Inmueble);
         }
 
 
 
-      // POST: Inmueble/Delete/5
-        [HttpPost]
+        // POST: Inmueble/Delete/5
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
@@ -160,58 +168,58 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al dar de baja el inmueble.";
+                TempData["Error"] = "Error al dar de baja el inmueble." + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-// GET: Inmueble/Inactivos
-public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
-{
-    try
-    {
-        var inactivos = repo_Inmueble.ObtenerInactivos(pagina, tamPagina);
-        
-        
-        int totalRegistros = repo_Inmueble.ObtenerCantidad(false); 
-
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
-
-        return View(inactivos);
-    }
-    catch (Exception ex)
-    {
-        return Content("ERROR: " + ex.Message);
-    }
-}
-
-// POST: Inmueble/Reactivar/5
-[HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult Reactivar(int id)
-{
-    try
-    {
-      repo_Inmueble.Reactivar(id);
-        TempData["Mensaje"] = "Propietario reactivado con éxito.";
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] = "Error al reactivar el propietario.";
-    }
-
-    // Redirige siempre de vuelta a la lista de inactivos o a Index
-    return RedirectToAction(nameof(Inactivos));
-}
+        // GET: Inmueble/Inactivos
+        public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                var inactivos = repo_Inmueble.ObtenerInactivos(pagina, tamPagina);
 
 
- // --- MÉTODO AUXILIAR PARA SELECTS ---
+                int totalRegistros = repo_Inmueble.ObtenerCantidad(false);
+
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+
+                return View(inactivos);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
+
+        // POST: Inmueble/Reactivar/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Reactivar(int id)
+        {
+            try
+            {
+                repo_Inmueble.Reactivar(id);
+                TempData["Mensaje"] = "Inmueble reactivado con éxito.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al reactivar el inmueble." + ex.Message;
+            }
+
+            // Redirige siempre de vuelta a la lista de inactivos o a Index
+            return RedirectToAction(nameof(Inactivos));
+        }
+
+
+        // --- MÉTODO AUXILIAR PARA SELECTS ---
         private void CargarDesplegables(int selectedPropietario = 0, int selectedTipo = 0)
         {
-            var propietarios = repo_Propietario.ObtenerActivos();
-            var tipos = repo_Tipo.ObtenerActivos();
+            var propietarios = repo_Propietario.ObtenerActivos() ?? new List<Propietario>();
+            var tipos = repo_Tipo.ObtenerActivos() ?? new List<TipoInmueble>();
 
             ViewBag.Propietarios = new SelectList(
                 propietarios.Select(p => new { Id = p.IdPropietario, NombreCompleto = $"{p.Nombre} {p.Apellido}" }),
@@ -221,13 +229,6 @@ public IActionResult Reactivar(int id)
                 tipos, "IdTipoInmueble", "Descripcion", selectedTipo);
         }
 
-
-
-
-
-
     }
-
-
 
 }

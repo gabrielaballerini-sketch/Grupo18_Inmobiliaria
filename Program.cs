@@ -1,9 +1,18 @@
 
-//creamos el objeto builder simil constructor
-//configuramos
 using Grupo18_Inmobiliaria.Models;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
+// Forzamos a que el servidor acepte el punto (.) como separador decimal
+var defaultCulture = new CultureInfo("es-AR");
+defaultCulture.NumberFormat.NumberDecimalSeparator = ".";
+defaultCulture.NumberFormat.CurrencyDecimalSeparator = ".";
+
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 
 //indicamos q va haber controller y vistas
 builder.Services.AddControllersWithViews();
