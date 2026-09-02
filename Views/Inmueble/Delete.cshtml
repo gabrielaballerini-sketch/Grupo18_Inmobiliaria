@@ -1,0 +1,42 @@
+@model Grupo18_Inmobiliaria.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Eliminar Inmueble";
+}
+
+<h2>Desactivar Inmueble</h2>
+
+<div class="alert alert-warning" role="alert">
+    <strong>¿Estás seguro de que deseas dar de baja este inmueble?</strong>
+</div>
+
+<div class="card col-md-6 mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Direccion)</dt>
+            <dd class="col-sm-8">@Model.Direccion</dd>
+
+            <dt class="col-sm-4">Tipo</dt>
+            <dd class="col-sm-8">@(Model.TipoInmueble != null ? Model.TipoInmueble.Descripcion : "Sin Tipo")</dd>
+
+            <dt class="col-sm-4">Propietario</dt>
+            <dd class="col-sm-8">@(Model.Propietario != null ? $"{Model.Propietario.Nombre} {Model.Propietario.Apellido}" : "Sin Propietario")</dd>
+
+            <dt class="col-sm-4">Capacidad</dt>
+            <dd class="col-sm-8">@Model.Capacidad pers.</dd>
+
+            <dt class="col-sm-4">Precio Alquiler</dt>
+            <dd class="col-sm-8">$@Model.PrecioAlquiler</dd>
+
+            <dt class="col-sm-4">Ubicación</dt>
+            <dd class="col-sm-8">Lat: @Model.Latitud, Long: @Model.Longitud</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete">
+    <!-- ID Oculto para enviar la baja al controlador -->
+    <input type="hidden" asp-for="IdInmueble" />
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Confirmar Baja</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
