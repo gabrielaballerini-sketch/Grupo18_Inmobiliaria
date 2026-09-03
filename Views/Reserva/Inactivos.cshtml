@@ -1,37 +1,27 @@
 @model IList<Grupo18_Inmobiliaria.Models.Reserva>
 
 @{
-    ViewData["Title"] = "Reservas";
+    ViewData["Title"] = "Reservas dadas de baja";
 }
 
 <div class="container mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <h1>Reservas</h1>
+        <h1>Reservas dadas de baja</h1>
 
-        <div>
-            <a asp-action="Create" class="btn btn-primary">
-                Nueva Reserva
-            </a>
-
-            <a asp-action="Inactivos" class="btn btn-secondary">
-                Reservas dadas de baja
-            </a>
-        </div>
+        <a asp-action="Index" class="btn btn-secondary">
+            Volver a reservas activas
+        </a>
 
     </div>
 
-
-
-
-    
-
+  
 
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info">
-            No hay reservas activas.
+            No hay reservas dadas de baja.
         </div>
     }
     else
@@ -82,17 +72,22 @@
 
                         <td>
 
-                            <a asp-action="Edit"
-                               asp-route-id="@reserva.IdReserva"
-                               class="btn btn-warning btn-sm">
-                                Editar
-                            </a>
+                            <form asp-action="Reactivar"
+                                  method="post"
+                                  style="display:inline;">
 
-                            <a asp-action="Delete"
-                               asp-route-id="@reserva.IdReserva"
-                               class="btn btn-danger btn-sm">
-                                Dar de baja
-                            </a>
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@reserva.IdReserva" />
+
+                                <button type="submit"
+                                        class="btn btn-success btn-sm">
+                                    Reactivar
+                                </button>
+
+                            </form>
 
                         </td>
 
@@ -103,9 +98,6 @@
 
         </table>
 
-
-        <!-- PAGINACIÓN -->
-
         <div class="d-flex justify-content-center mt-4">
 
             <nav>
@@ -114,16 +106,13 @@
 
                     @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
                     {
-                        <li class="page-item
-                            @(i == ViewBag.PaginaActual ? "active" : "")">
+                        <li class="page-item @(i == ViewBag.PaginaActual ? "active" : "")">
 
                             <a class="page-link"
-                               asp-action="Index"
+                               asp-action="Inactivos"
                                asp-route-pagina="@i"
                                asp-route-tamPagina="10">
-
                                 @i
-
                             </a>
 
                         </li>

@@ -21,7 +21,7 @@ builder.Services.AddScoped<RepositorioPropietarioMySql>();
 builder.Services.AddScoped<RepositorioInquilinoMySql>();
 builder.Services.AddScoped<RepositorioTipoInmuebleMySql>();
 builder.Services.AddScoped<RepositorioInmuebleMySql>();
-
+builder.Services.AddScoped<RepositorioReservaMySql>();
 
 
 

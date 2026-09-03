@@ -1,0 +1,117 @@
+@model Grupo18_Inmobiliaria.Models.Reserva
+
+@{
+    ViewData["Title"] = "Dar de baja Reserva";
+}
+
+<div class="container mt-4">
+
+    <h1>Dar de baja Reserva</h1>
+
+    <div class="alert alert-warning mt-3">
+
+        <strong>¿Está seguro de que desea dar de baja esta reserva?</strong>
+
+        <br />
+
+        La reserva no será eliminada de la base de datos.
+        Simplemente pasará a estar inactiva.
+
+    </div>
+
+
+    <div class="card mt-4">
+
+        <div class="card-header">
+            Datos de la Reserva
+        </div>
+
+        <div class="card-body">
+
+            <dl class="row">
+
+                <dt class="col-sm-4">
+                    Id Reserva
+                </dt>
+
+                <dd class="col-sm-8">
+                    @Model.IdReserva
+                </dd>
+
+
+                <dt class="col-sm-4">
+                    Id Inquilino
+                </dt>
+
+                <dd class="col-sm-8">
+                    @Model.IdInquilino
+                </dd>
+
+
+                <dt class="col-sm-4">
+                    Id Inmueble
+                </dt>
+
+                <dd class="col-sm-8">
+                    @Model.IdInmueble
+                </dd>
+
+
+                <dt class="col-sm-4">
+                    Monto diario
+                </dt>
+
+                <dd class="col-sm-8">
+                    $@Model.MontoDiario
+                </dd>
+
+
+                <dt class="col-sm-4">
+                    Fecha inicio
+                </dt>
+
+                <dd class="col-sm-8">
+                    @Model.FechaInicio.ToString("dd/MM/yyyy HH:mm")
+                </dd>
+
+
+                <dt class="col-sm-4">
+                    Fecha fin
+                </dt>
+
+                <dd class="col-sm-8">
+                    @Model.FechaFin.ToString("dd/MM/yyyy HH:mm")
+                </dd>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+
+    <!-- CONFIRMACIÓN -->
+
+    <form asp-action="Delete"
+          method="post"
+          class="mt-4">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="id"
+               value="@Model.IdReserva" />
+
+        <button type="submit"
+                class="btn btn-danger">
+            Sí, dar de baja
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            Cancelar
+        </a>
+
+    </form>
+
+</div>
