@@ -18,11 +18,11 @@ Podés consultar el diagrama de clases del sistema en el siguiente enlace:
 ---
 
 ##  Base de Datos
-El código completo de creación de tablas y datos iniciales (seed data) se encuentra en el archivo **`database.sql`** dentro de este repositorio.
+El código completo de creación de tablas y datos iniciales (seed data) se encuentra en el archivo **`inmobiliaria_g18.sql`** dentro de este repositorio.
 
 Para configurarla:
 1. Creá una base de datos en MySQL llamada `inmobiliaria_g18`.
-2. Importá o ejecutá el script contenido en `database.sql`.
+2. Importá o ejecutá el script contenido en `inmobiliaria_g18.sql`.
 
 ---
 

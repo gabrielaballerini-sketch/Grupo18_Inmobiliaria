@@ -25,7 +25,7 @@
 
 
 
-    
+
 
 
     @if (Model == null || !Model.Any())
@@ -44,8 +44,8 @@
                     <th>Monto diario</th>
                     <th>Fecha inicio</th>
                     <th>Fecha fin</th>
-                    <th>Id Inquilino</th>
-                    <th>Id Inmueble</th>
+                    <th>Inquilino</th>
+                    <th>Inmueble</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -73,19 +73,17 @@
                         </td>
 
                         <td>
-                            @reserva.IdInquilino
+                            @reserva.Inquilino.Nombre @reserva.Inquilino.Apellido
                         </td>
 
                         <td>
-                            @reserva.IdInmueble
+                            @reserva.Inmueble.Direccion
                         </td>
 
                         <td>
 
-                            
-                            <a asp-action="Delete"
-                               asp-route-id="@reserva.IdReserva"
-                               class="btn btn-danger btn-sm">
+
+                            <a asp-action="Delete" asp-route-id="@reserva.IdReserva" class="btn btn-danger btn-sm">
                                 Dar de baja
                             </a>
 
@@ -110,12 +108,9 @@
                     @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
                     {
                         <li class="page-item
-                            @(i == ViewBag.PaginaActual ? "active" : "")">
+                                                            @(i == ViewBag.PaginaActual ? "active" : "")">
 
-                            <a class="page-link"
-                               asp-action="Index"
-                               asp-route-pagina="@i"
-                               asp-route-tamPagina="10">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-tamPagina="10">
 
                                 @i
 

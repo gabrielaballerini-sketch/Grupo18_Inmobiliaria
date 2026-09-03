@@ -16,7 +16,7 @@
 
     </div>
 
-  
+
 
     @if (Model == null || !Model.Any())
     {
@@ -34,8 +34,8 @@
                     <th>Monto diario</th>
                     <th>Fecha inicio</th>
                     <th>Fecha fin</th>
-                    <th>Id Inquilino</th>
-                    <th>Id Inmueble</th>
+                    <th>Inquilino</th>
+                    <th>Inmueble</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -63,27 +63,22 @@
                         </td>
 
                         <td>
-                            @reserva.IdInquilino
+                            @reserva.Inquilino.Nombre @reserva.Inquilino.Apellido
                         </td>
 
                         <td>
-                            @reserva.IdInmueble
+                            @reserva.Inmueble.Direccion
                         </td>
 
                         <td>
 
-                            <form asp-action="Reactivar"
-                                  method="post"
-                                  style="display:inline;">
+                            <form asp-action="Reactivar" method="post" style="display:inline;">
 
                                 @Html.AntiForgeryToken()
 
-                                <input type="hidden"
-                                       name="id"
-                                       value="@reserva.IdReserva" />
+                                <input type="hidden" name="id" value="@reserva.IdReserva" />
 
-                                <button type="submit"
-                                        class="btn btn-success btn-sm">
+                                <button type="submit" class="btn btn-success btn-sm">
                                     Reactivar
                                 </button>
 
@@ -108,10 +103,7 @@
                     {
                         <li class="page-item @(i == ViewBag.PaginaActual ? "active" : "")">
 
-                            <a class="page-link"
-                               asp-action="Inactivos"
-                               asp-route-pagina="@i"
-                               asp-route-tamPagina="10">
+                            <a class="page-link" asp-action="Inactivos" asp-route-pagina="@i" asp-route-tamPagina="10">
                                 @i
                             </a>
 

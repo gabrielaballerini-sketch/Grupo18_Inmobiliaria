@@ -9,9 +9,15 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Propietarios</h1>
 
-        <a asp-action="Create" class="btn btn-primary">
-            Nuevo Propietario
-        </a>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                Nuevo Propietario
+            </a>
+
+            <a asp-action="Inactivos" class="btn btn-secondary">
+                Propietarios dados de baja
+            </a>
+        </div>
     </div>
 
     @if (Model == null || !Model.Any())
@@ -70,32 +76,33 @@
 
         </div>
 
-        <!-- Botones de Paginación -->
+        <!-- PAGINACIÓN CON NÚMEROS (Igual a Reservas) -->
 
+        <div class="d-flex justify-content-center mt-4">
 
-        <div class="mt-3 text-center">
-            @if (ViewBag.PaginaActual > 1)
-            {
-                <a asp-action="Index" asp-route-pagina="@(ViewBag.PaginaActual - 1)"
-                   class="btn btn-outline-primary me-2">Anterior</a>
-            }
+            <nav>
 
-            @if (ViewBag.PaginaActual < ViewBag.TotalPaginas)
-            {
-                <a asp-action="Index" asp-route-pagina="@(ViewBag.PaginaActual + 1)"
-                   class="btn btn-outline-primary">Siguiente</a>
-            }
+                <ul class="pagination">
+
+                    @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.PaginaActual ? "active" : "")">
+
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-tamPagina="10">
+
+                                @i
+
+                            </a>
+
+                        </li>
+                    }
+
+                </ul>
+
+            </nav>
+
         </div>
 
     }
-
-</div>
-
-<!-- BOTÓN INACTIVOS ABAJO DEL TODO -->
-<div class="mt-4 mb-3">
-    <a asp-action="Inactivos" class="btn btn-secondary">
-        <i class="bi bi-archive"></i> Ver Inactivos
-    </a>
-</div>
 
 </div>
