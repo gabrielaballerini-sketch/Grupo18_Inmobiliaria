@@ -111,53 +111,7 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-        // MODIFICACION
-        public int Modificacion(Reserva reserva)
-        {
-            int res = -1;
-
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                string sql = """
-                    UPDATE Reservas
-                    SET
-                        MontoDiario = @MontoDiario,
-                        FechaInicio = @FechaInicio,
-                        FechaFin = @FechaFin,
-                        IdInquilino = @IdInquilino,
-                        IdInmueble = @IdInmueble,
-                        IdUsuario = @IdUsuario
-                    WHERE IdReserva = @IdReserva;
-                """;
-
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.CommandType = CommandType.Text;
-
-                    command.Parameters.AddWithValue("@MontoDiario", reserva.MontoDiario);
-
-
-                    command.Parameters.AddWithValue("@FechaInicio", reserva.FechaInicio);
-
-                    command.Parameters.AddWithValue("@FechaFin", reserva.FechaFin);
-
-                    command.Parameters.AddWithValue("@IdInquilino", reserva.IdInquilino);
-
-                    command.Parameters.AddWithValue("@IdInmueble", reserva.IdInmueble);
-
-                    command.Parameters.AddWithValue("@IdUsuario", reserva.IdUsuario);
-
-                    command.Parameters.AddWithValue("@IdReserva", reserva.IdReserva);
-
-                    connection.Open();
-
-                    res = command.ExecuteNonQuery();
-
-                }
-            }
-
-            return res;
-        }
+      
 
         // REACTIVAR
 
@@ -352,9 +306,14 @@ namespace Grupo18_Inmobiliaria.Models
                         r.Estado,
                         r.IdInquilino,
                         r.IdInmueble,
-                        r.IdUsuario
+                        r.IdUsuario,
+                        i.Nombre AS InquilinoNombre,
+                        i.Apellido AS InquilinoApellido,
+                        inm.Direccion AS InmuebleDireccion
 
                     FROM Reservas r
+                    JOIN inquilinos i ON r.IdInquilino = i.IdInquilino
+                    JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
 
                     WHERE r.IdReserva = @IdReserva;
                 """;

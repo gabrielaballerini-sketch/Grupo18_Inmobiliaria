@@ -28,7 +28,9 @@ namespace Grupo18_Inmobiliaria.Models
         [Range(-90, 90, ErrorMessage = "La latitud debe ser entre -90 y 90")]
         public decimal Latitud { get; set; }
 
+       
         [Required(ErrorMessage = "El precio de alquiler es requerido")]
+        [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ErrorMessage = "El precio debe ser un valor mayor a 0")]
         public decimal PrecioAlquiler { get; set; }
 
         [Required(ErrorMessage = "Debe seleccionar un propietario")]

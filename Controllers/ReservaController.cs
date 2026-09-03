@@ -50,15 +50,14 @@ namespace Grupo18_Inmobiliaria.Controllers
        
         // CREATE - GET
        
+public IActionResult Create()
+{
+   
+CargarDesplegables();
 
-        [HttpGet]
-        public IActionResult Create()
-        {
-            CargarDesplegables();
 
-            return View();
-        }
-
+    return View();
+}
 
        
         // CREATE - POST
@@ -80,7 +79,7 @@ namespace Grupo18_Inmobiliaria.Controllers
                     }
 
 
-            // Verificar que haya un inquilino seleccionado
+          
 
 
             if (reserva.IdInquilino <= 0)
@@ -104,6 +103,16 @@ namespace Grupo18_Inmobiliaria.Controllers
            
             // La fecha de inicio debe ser anterior
             // a la fecha de finalización
+
+
+            
+            if (reserva.FechaInicio < DateTime.Now)
+            {
+                
+                  ModelState.AddModelError( "FechaInicio","La fecha de inicio no debe ser anterior a la fecha actual.");
+
+            }
+
           
 
             if (reserva.FechaInicio >= reserva.FechaFin)
@@ -174,158 +183,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
-      
-        // EDIT - GET
-       
-
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var reserva =repo_Reserva.ObtenerPorId(id);
-
-            if (reserva == null)
-            {
-                return NotFound();
-            }
-
-            CargarDesplegables( reserva.IdInquilino,reserva.IdInmueble);
-
-            return View(reserva);
-        }
-
-
-      
-        // EDIT - POST
-       
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id,Reserva reserva)
-        {
-         
-            // Verificar que el ID de la URL coincida
-            // con el ID de la reserva
-          
-
-            if (id != reserva.IdReserva)
-            {
-                return NotFound();
-            }
-            // Eliminamos del ModelState las propiedades
-            // de navegación que no vienen del formulario.
-            foreach (var key in ModelState.Keys
-                .Where(k =>
-                    k.StartsWith("Inquilino") ||
-                    k.StartsWith("Inmueble") ||
-                    k.StartsWith("Usuario") ||
-                    k.StartsWith("PagosEfectuados"))
-                .ToList())
-            {
-                ModelState.Remove(key);
-            }
-
-
-
-           
-            // Verificar inquilino
-
-
-            if (reserva.IdInquilino <= 0)
-            {
-                ModelState.AddModelError( "IdInquilino","Debe seleccionar un inquilino." );
-            }
-
-
-            
-       
-            // Verificar inmueble
-           
-
-            if (reserva.IdInmueble <= 0)
-            {
-                ModelState.AddModelError("IdInmueble", "Debe seleccionar un inmueble."
-                );
-            }
-
-
-         
-            
-            // Verificar fechas
-          
-
-            if (reserva.FechaInicio >= reserva.FechaFin)
-            {
-                ModelState.AddModelError( "FechaFin","La fecha de finalización debe ser posterior a la fecha de inicio.");
-            }
-
-
-          
-         
-            // Verificar disponibilidad del inmueble
-         
-            // EXCLUIMOS LA PROPIA RESERVA
-           
-
-            if (reserva.IdInmueble > 0 && reserva.FechaInicio < reserva.FechaFin)
-            {
-                bool existeReserva =
-                    repo_Reserva.ExisteReservaEnFechas(
-                        reserva.IdInmueble,
-                        reserva.FechaInicio,
-                        reserva.FechaFin,
-                        reserva.IdReserva
-                    );
-
-                if (existeReserva)
-                {
-                    ModelState.AddModelError("IdInmueble","El inmueble ya está reservado durante ese período.");
-                }
-            }
-
-
-
-            // SI HAY ERRORES
-     
-
-            if (!ModelState.IsValid)
-            {
-                CargarDesplegables(
-                    reserva.IdInquilino,
-                    reserva.IdInmueble
-                );
-
-                return View(reserva);
-            }
-
-
-        
-            // MODIFICAR
-         
-
-            try
-            {
-                // TEMPORAL
-                // Hasta que armemos Usuario.
-                reserva.IdUsuario = 1;
-
-                repo_Reserva.Modificacion(reserva);
-
-                TempData["Mensaje"] ="Reserva modificada con éxito.";
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] ="Error al modificar la reserva: " + ex.Message;
-
-                CargarDesplegables( reserva.IdInquilino, reserva.IdInmueble);
-
-                return View(reserva);
-            }
-        }
-
-
-        
+              
         // DELETE - GET
        
 
@@ -415,6 +273,18 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
+
+// cargar monto a la vista x dia
+[HttpGet]
+public IActionResult ObtenerPrecioInmueble(int id)
+{
+    var inmueble = repo_Inmueble.ObtenerPorId(id);
+    if (inmueble == null) return NotFound();
+    return Json(new { precio = inmueble.PrecioAlquiler });
+}
+
+
+
         
         // DESPLEGABLES
     
@@ -451,7 +321,7 @@ namespace Grupo18_Inmobiliaria.Controllers
                     {
                         Id = i.IdInmueble,
                         Descripcion =
-                            $"{i.Direccion} - ${i.PrecioAlquiler}"
+                            $"{i.Direccion}"
                     }),
                     "Id",
                     "Descripcion",

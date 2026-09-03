@@ -80,7 +80,7 @@ namespace Grupo18_Inmobiliaria.Models
                     PrecioAlquiler = @precioAlquiler,
                     IdPropietario = @idPropietario,
                     IdTipoInmueble = @idTipoInmueble
-                WHERE IdInmueble = @id;";
+                WHERE IdInmueble = @IdInmueble;";
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -107,7 +107,7 @@ namespace Grupo18_Inmobiliaria.Models
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"UPDATE inmuebles SET estado = 1 WHERE IdInmueble = @id;";
+                string sql = @"UPDATE inmuebles SET estado = 1 WHERE IdInmueble = @IdInmueble;";
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -248,8 +248,8 @@ private Inmueble MapearInmueble(MySqlDataReader reader)
                    i.IdPropietario, p.Nombre AS PropNombre, p.Apellido AS PropApellido,
                    i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
             FROM inmuebles i
-            LEFT JOIN propietarios p ON i.IdPropietario = p.IdPropietario
-            LEFT JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
+             JOIN propietarios p ON i.IdPropietario = p.IdPropietario
+             JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
             WHERE i.IdInmueble = @IdInmueble;";
 
                 using (var command = new MySqlCommand(query, connection))
