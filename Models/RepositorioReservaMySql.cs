@@ -11,9 +11,9 @@ namespace Grupo18_Inmobiliaria.Models
 
         }
 
-     
+
         // ALTA
-     
+
 
         public int Alta(Reserva reserva)
         {
@@ -70,10 +70,10 @@ namespace Grupo18_Inmobiliaria.Models
 
 
 
-                    res = Convert.ToInt32( command.ExecuteScalar() );
-                       
+                    res = Convert.ToInt32(command.ExecuteScalar());
+
                     reserva.IdReserva = res;
-             
+
 
                 }
             }
@@ -83,7 +83,7 @@ namespace Grupo18_Inmobiliaria.Models
 
 
         // BAJA LOGICA
-      
+
 
         public int Baja(int id)
         {
@@ -108,11 +108,11 @@ namespace Grupo18_Inmobiliaria.Models
                 }
             }
 
-                     return res;
+            return res;
         }
 
         // MODIFICACION
-         public int Modificacion(Reserva reserva)
+        public int Modificacion(Reserva reserva)
         {
             int res = -1;
 
@@ -187,11 +187,11 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
 
-      
-        // OBTENER ACTIVOS
-     
 
-        public IList<Reserva> ObtenerActivos( int pagina = 1, int tamPagina = 10)
+        // OBTENER ACTIVOS
+
+
+        public IList<Reserva> ObtenerActivos(int pagina = 1, int tamPagina = 10)
         {
             IList<Reserva> listaActivos = new List<Reserva>();
 
@@ -206,18 +206,20 @@ namespace Grupo18_Inmobiliaria.Models
                         r.Estado,
                         r.IdInquilino,
                         r.IdInmueble,
-                        r.IdUsuario
-
+                        r.IdUsuario,
+                        i.Nombre AS InquilinoNombre,
+                        i.Apellido AS InquilinoApellido,
+                        inm.Direccion AS InmuebleDireccion
                     FROM Reservas r
-
+                    JOIN inquilinos i ON r.IdInquilino = i.IdInquilino
+                    JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
                     WHERE r.Estado = 1
-
                     LIMIT {tamPagina}
                     OFFSET {(pagina - 1) * tamPagina};
                 """;
 
-                using (var command = new MySqlCommand( query, connection))
-                   
+                using (var command = new MySqlCommand(query, connection))
+
                 {
                     command.CommandType = CommandType.Text;
 
@@ -227,8 +229,8 @@ namespace Grupo18_Inmobiliaria.Models
                     {
                         while (reader.Read())
                         {
-                            listaActivos.Add( MapearReserva(reader)
-                               
+                            listaActivos.Add(MapearReserva(reader)
+
                             );
                         }
                     }
@@ -239,34 +241,46 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
 
-     
-        // MAPEAR RESERVA
-       
 
-        private Reserva MapearReserva( MySqlDataReader reader)
+        // MAPEAR RESERVA
+
+
+        private Reserva MapearReserva(MySqlDataReader reader)
         {
-            return new Reserva
+            var reserva = new Reserva
             {
                 IdReserva = reader.GetInt32(reader.GetOrdinal("IdReserva")),
                 MontoDiario = reader.GetDecimal(reader.GetOrdinal("MontoDiario")),
                 FechaInicio = reader.GetDateTime(reader.GetOrdinal("FechaInicio")),
-
                 FechaFin = reader.GetDateTime(reader.GetOrdinal("FechaFin")),
-
                 Estado = reader.GetBoolean(reader.GetOrdinal("Estado")),
-
                 IdInquilino = reader.GetInt32(reader.GetOrdinal("IdInquilino")),
-
                 IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
-                IdUsuario = reader.GetInt32(reader.GetOrdinal("IdUsuario"))
+                IdUsuario = reader.GetInt32(reader.GetOrdinal("IdUsuario")),
 
+
+                Inquilino = new Inquilino
+                {
+                    IdInquilino = reader.GetInt32(reader.GetOrdinal("IdInquilino")),
+                    Nombre = reader.GetString(reader.GetOrdinal("InquilinoNombre")),
+                    Apellido = reader.GetString(reader.GetOrdinal("InquilinoApellido"))
+                },
+
+
+                Inmueble = new Inmueble
+                {
+                    IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
+                    Direccion = reader.GetString(reader.GetOrdinal("InmuebleDireccion"))
+                }
             };
+
+            return reserva;
         }
 
 
-       
+
         // OBTENER INACTIVOS
-       
+
 
         public IList<Reserva> ObtenerInactivos(
             int pagina = 1,
@@ -285,18 +299,20 @@ namespace Grupo18_Inmobiliaria.Models
                         r.Estado,
                         r.IdInquilino,
                         r.IdInmueble,
-                        r.IdUsuario
-
+                        r.IdUsuario,
+                        i.Nombre AS InquilinoNombre,
+                        i.Apellido AS InquilinoApellido,
+                        inm.Direccion AS InmuebleDireccion
                     FROM Reservas r
-
+                    JOIN inquilinos i ON r.IdInquilino = i.IdInquilino
+                    JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
                     WHERE r.Estado = 0
-
                     LIMIT {tamPagina}
                     OFFSET {(pagina - 1) * tamPagina};
                 """;
 
-                using (var command = new MySqlCommand( query,connection))
-                  {
+                using (var command = new MySqlCommand(query, connection))
+                {
                     command.CommandType = CommandType.Text;
 
                     connection.Open();
@@ -305,9 +321,9 @@ namespace Grupo18_Inmobiliaria.Models
                     {
                         while (reader.Read())
                         {
-                            listaInactivos.Add(  MapearReserva(reader));
-                              
-                            
+                            listaInactivos.Add(MapearReserva(reader));
+
+
                         }
                     }
                 }
@@ -317,9 +333,9 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
 
-       
+
         // OBTENER POR ID
-        
+
 
         public Reserva? ObtenerPorId(int id)
         {
@@ -347,9 +363,9 @@ namespace Grupo18_Inmobiliaria.Models
                     query,
                     connection))
                 {
-                    command.Parameters.AddWithValue( "@IdReserva",  id );
-                      
-                       connection.Open();
+                    command.Parameters.AddWithValue("@IdReserva", id);
+
+                    connection.Open();
 
                     using (var reader = command.ExecuteReader())
                     {
@@ -365,11 +381,11 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
 
-      
-        // OBTENER CANTIDAD
-     
 
-        public int ObtenerCantidad( bool? soloActivos = true)
+        // OBTENER CANTIDAD
+
+
+        public int ObtenerCantidad(bool? soloActivos = true)
         {
             int res = 0;
 
@@ -385,38 +401,38 @@ namespace Grupo18_Inmobiliaria.Models
                     sql += " WHERE Estado = @Estado";
                 }
 
-                using (var command = new MySqlCommand(sql,connection))
-                 
-                   
+                using (var command = new MySqlCommand(sql, connection))
+
+
                 {
                     if (soloActivos.HasValue)
                     {
-                        command.Parameters.AddWithValue( "@Estado",  soloActivos.Value ? 1 : 0 );
-                           
-                     }
+                        command.Parameters.AddWithValue("@Estado", soloActivos.Value ? 1 : 0);
+
+                    }
 
                     command.CommandType = CommandType.Text;
 
                     connection.Open();
 
-                    res = Convert.ToInt32( command.ExecuteScalar() );
-                       
-                   
+                    res = Convert.ToInt32(command.ExecuteScalar());
+
+
                 }
             }
 
             return res;
         }
-    
-    // VERIFICAR SI EXISTE UNA RESERVA EN UN PERIODO
 
-public bool ExisteReservaEnFechas(int idInmueble,DateTime fechaInicio,DateTime fechaFin,int? idReservaExcluir = null)
-{
-    bool existe = false;
+        // VERIFICAR SI EXISTE UNA RESERVA EN UN PERIODO
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = """
+        public bool ExisteReservaEnFechas(int idInmueble, DateTime fechaInicio, DateTime fechaFin, int? idReservaExcluir = null)
+        {
+            bool existe = false;
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = """
             SELECT COUNT(*)
             FROM Reservas
             WHERE IdInmueble = @IdInmueble
@@ -425,39 +441,39 @@ public bool ExisteReservaEnFechas(int idInmueble,DateTime fechaInicio,DateTime f
             AND FechaFin > @FechaInicio
         """;
 
-        // Si estamos editando una reserva,
-        // excluimos la propia reserva de la búsqueda.
-        if (idReservaExcluir.HasValue)
-        {
-            sql += " AND IdReserva <> @IdReservaExcluir";
-        }
+                // Si estamos editando una reserva,
+                // excluimos la propia reserva de la búsqueda.
+                if (idReservaExcluir.HasValue)
+                {
+                    sql += " AND IdReserva <> @IdReservaExcluir";
+                }
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.CommandType = CommandType.Text;
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
 
-            command.Parameters.AddWithValue("@IdInmueble",idInmueble);
+                    command.Parameters.AddWithValue("@IdInmueble", idInmueble);
 
-            command.Parameters.AddWithValue("@FechaInicio",fechaInicio );
+                    command.Parameters.AddWithValue("@FechaInicio", fechaInicio);
 
-            command.Parameters.AddWithValue( "@FechaFin",fechaFin);
+                    command.Parameters.AddWithValue("@FechaFin", fechaFin);
 
-            if (idReservaExcluir.HasValue)
-            {
-                command.Parameters.AddWithValue( "@IdReservaExcluir",idReservaExcluir.Value );
+                    if (idReservaExcluir.HasValue)
+                    {
+                        command.Parameters.AddWithValue("@IdReservaExcluir", idReservaExcluir.Value);
+                    }
+
+                    connection.Open();
+
+                    int cantidad = Convert.ToInt32(command.ExecuteScalar());
+
+                    existe = cantidad > 0;
+                }
             }
 
-            connection.Open();
-
-            int cantidad =Convert.ToInt32(command.ExecuteScalar());
-
-            existe = cantidad > 0;
+            return existe;
         }
     }
-
-    return existe;
-}
-}
 }
 
 
