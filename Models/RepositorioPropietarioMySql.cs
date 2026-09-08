@@ -5,7 +5,7 @@ using MySqlConnector;
 
 namespace Grupo18_Inmobiliaria.Models
 {
-    public class RepositorioPropietarioMySql : RepositorioBase
+    public class RepositorioPropietarioMySql : RepositorioBase, IRepositorioPropietario
     {
         public RepositorioPropietarioMySql(IConfiguration configuration) : base(configuration)
         {
@@ -155,7 +155,7 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
         // OBTENER POR ID (AHORA DENTRO DE LA CLASE)
-        public Propietario? ObtenerPorId(int id)
+        public Propietario ObtenerPorId(int id)
         {
             Propietario? propietario = null;
 
@@ -194,7 +194,7 @@ namespace Grupo18_Inmobiliaria.Models
             return propietario;
         }
 
-        public bool ObtenerporDni(string dni)
+        public bool ObtenerPorDni(string dni)
         {
 
             using (var connection = new MySqlConnection(connectionString))

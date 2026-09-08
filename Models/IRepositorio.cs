@@ -8,6 +8,8 @@ namespace Grupo18_Inmobiliaria.Models
 
         int Modificacion(T entidad);
 
+        int Reactivar(int id);
+
         IList<T> ObtenerActivos(
             int pagina = 1,
             int tamPagina = 10
@@ -19,7 +21,7 @@ namespace Grupo18_Inmobiliaria.Models
         );
 
 
-        int ObtenerCantidad();
+        int ObtenerCantidad(bool? soloActivos = true);
 
         T ObtenerPorId(int id);
     }
