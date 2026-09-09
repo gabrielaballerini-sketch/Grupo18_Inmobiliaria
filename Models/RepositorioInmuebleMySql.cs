@@ -301,7 +301,82 @@ public int ObtenerCantidad(bool? soloActivos = true)
     }
     return res;
 }
-              
+
+
+
+
+public int ModificarPortada(int idInmueble, string ruta)
+{
+    int res = -1;
+    using (var connection = new MySqlConnection(connectionString))
+    {
+   
+        string sql = @"UPDATE inmuebles 
+                       SET ImagenUrl = @ruta 
+                       WHERE IdInmueble = @IdInmueble;";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.CommandType = CommandType.Text;
+            command.Parameters.AddWithValue("@ruta", ruta);
+            command.Parameters.AddWithValue("@IdInmueble", idInmueble);
+
+            connection.Open();
+            res = command.ExecuteNonQuery();
+        }
+    }
+    return res;
+}
+
+
+
+public IList<Inmueble> BuscarPorPropietario(int idPropietario)
+{
+    IList<Inmueble> lista = new List<Inmueble>();
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string query = @"
+            SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
+                   i.IdPropietario, p.Nombre AS PropNombre, p.Apellido AS PropApellido,
+                   i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
+            FROM inmuebles i
+            JOIN propietarios p ON i.IdPropietario = p.IdPropietario
+            JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
+            WHERE i.IdPropietario = @IdPropietario;";
+
+        using (var command = new MySqlCommand(query, connection))
+        {
+            command.CommandType = CommandType.Text;
+            command.Parameters.AddWithValue("@IdPropietario", idPropietario);
+            
+            connection.Open();
+
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    // Aprovechamos tu método MapearInmueble que ya tenías creado
+                    lista.Add(MapearInmueble(reader));
+                }
+            }
+        }
+    }
+
+    return lista;
+}
+
+
+
+
+
+
+
+
+
+
+
+
    
     }
 

@@ -4,7 +4,7 @@ using MySqlConnector;
 
 namespace Grupo18_Inmobiliaria.Models
 {
-    public class RepositorioReservaMySql : RepositorioBase
+    public class RepositorioReservaMySql : RepositorioBase, IRepositorioReserva
     {
         public RepositorioReservaMySql(IConfiguration configuration) : base(configuration)
         {
@@ -110,6 +110,36 @@ namespace Grupo18_Inmobiliaria.Models
 
             return res;
         }
+
+public int Modificacion(Reserva reserva)
+{
+    int res = -1;
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"UPDATE reservas 
+                       SET FechaDesde = @FechaDesde, 
+                           FechaHasta = @FechaHasta, 
+                           IdInmueble = @IdInmueble, 
+                           IdInquilino = @IdInquilino 
+                       WHERE IdReserva = @IdReserva;";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.CommandType = CommandType.Text;
+            command.Parameters.AddWithValue("@FechaDesde", reserva.FechaInicio);
+            command.Parameters.AddWithValue("@FechaHasta", reserva.FechaFin);
+            command.Parameters.AddWithValue("@IdInmueble", reserva.IdInmueble);
+            command.Parameters.AddWithValue("@IdInquilino", reserva.IdInquilino);
+            command.Parameters.AddWithValue("@IdReserva", reserva.IdReserva);
+
+            connection.Open();
+            res = command.ExecuteNonQuery();
+        }
+    }
+    return res;
+}
+
+
 
       
 

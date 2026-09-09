@@ -5,7 +5,7 @@ using MySqlConnector;
 namespace Grupo18_Inmobiliaria.Models
 {
 
-    public class RepositorioTipoInmuebleMySql : RepositorioBase
+    public class RepositorioTipoInmuebleMySql : RepositorioBase, IRepositorio<TipoInmueble>
     {
 
         public RepositorioTipoInmuebleMySql(IConfiguration configuration) : base(configuration)

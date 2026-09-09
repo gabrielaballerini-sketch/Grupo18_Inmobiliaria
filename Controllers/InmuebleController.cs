@@ -6,11 +6,11 @@ namespace Grupo18_Inmobiliaria.Controllers
 {
     public class InmuebleController : Controller
     {
-        private readonly RepositorioInmuebleMySql repo_Inmueble;
-        private readonly RepositorioPropietarioMySql repo_Propietario;
-        private readonly RepositorioTipoInmuebleMySql repo_Tipo;
+        private readonly IRepositorioInmueble repo_Inmueble;
+        private readonly IRepositorioPropietario repo_Propietario;
+        private readonly IRepositorio<TipoInmueble> repo_Tipo;
 
-        public InmuebleController(RepositorioInmuebleMySql repoInmueble, RepositorioPropietarioMySql repoPropietario, RepositorioTipoInmuebleMySql repoTipo)
+        public InmuebleController(IRepositorioInmueble repoInmueble, IRepositorioPropietario repoPropietario, IRepositorio<TipoInmueble> repoTipo)
         {
             this.repo_Inmueble = repoInmueble;
             this.repo_Propietario = repoPropietario;

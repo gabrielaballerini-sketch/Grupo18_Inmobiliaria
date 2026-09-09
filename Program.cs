@@ -1,8 +1,12 @@
 
 using Grupo18_Inmobiliaria.Models;
+
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
 
 
 
@@ -17,11 +21,12 @@ CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 //indicamos q va haber controller y vistas
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<RepositorioPropietarioMySql>();
-builder.Services.AddScoped<RepositorioInquilinoMySql>();
-builder.Services.AddScoped<RepositorioTipoInmuebleMySql>();
-builder.Services.AddScoped<RepositorioInmuebleMySql>();
-builder.Services.AddScoped<RepositorioReservaMySql>();
+builder.Services.AddScoped<IRepositorioPropietario,RepositorioPropietarioMySql>();
+builder.Services.AddScoped<IRepositorioInquilino,RepositorioInquilinoMySql>();
+builder.Services.AddScoped< RepositorioTipoInmuebleMySql>();
+//builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmuebleMySql>();
+//builder.Services.AddScoped<IRepositorioReserva, RepositorioReservaMySql>();
+
 
 
 
