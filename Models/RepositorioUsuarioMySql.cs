@@ -1,68 +1,72 @@
 using Grupo18_Inmobiliaria.Models;
-using  System.Data;
+using System.Data;
 using MySqlConnector;
-using System.Reflection.Metadata.Ecma335;
 
-namespace Grupo18_Inmobiliaria.Models{
-public class RepositorioUsuarioMySql : RepositorioBase, IRepositorio<Usuario> {
 
-    public RepositorioUsuarioMySql(IConfiguration configuration): base(configuration)
+namespace Grupo18_Inmobiliaria.Models
+{
+    public class RepositorioUsuarioMySql : RepositorioBase, IRepositorio<Usuario>
+    {
+
+        public RepositorioUsuarioMySql(IConfiguration configuration) : base(configuration)
         {
-            
+
         }
 
 
-public int Alta(Usuario usuario)
+        public int Alta(Usuario usuario)
         {
-            int res= -1;
+            int res = -1;
 
-            using var connection=new MySqlConnection(connectionString);
+            using var connection = new MySqlConnection(connectionString);
 
-            connection.Open();
-            string sql="""
+            string sql = """
             INSERT INTO Usuarios(UserName,Password,RolUsuario,Estado)
             VALUES(@UserName,@Password,@RolUsuario,@Estado);
 
             SELECT LAST_INSERT_ID();
             """;
-            using var command=new MySqlCommand(sql,connection);
-            command.CommandType=CommandType.Text;
+            using var command = new MySqlCommand(sql, connection);
+            command.CommandType = CommandType.Text;
 
-            command.Parameters.AddWithValue("@UserName",usuario.UserName);
-            command.Parameters.AddWithValue("@Password",usuario.Password);
-            command.Parameters.AddWithValue("@RolUsuario",usuario.RolUsuario);
-            command.Parameters.AddWithValue("@Estado",usuario.Estado);
+            command.Parameters.AddWithValue("@UserName", usuario.UserName);
+            command.Parameters.AddWithValue("@Password", usuario.Password);
+            command.Parameters.AddWithValue("@RolUsuario", (int)usuario.RolUsuario);
+            command.Parameters.AddWithValue("@Estado", usuario.Estado);
 
-            res=Convert.ToInt32(command.ExecuteScalar());
-            
-            usuario.IdUsuario=res;
+            connection.Open();
+
+            res = Convert.ToInt32(command.ExecuteScalar());
+
+            usuario.IdUsuario = res;
 
             return res;
-            }
-            public int Baja (int id)
+        }
+        public int Baja(int id)
         {
-            int res =-1;
-            using var connection=new MySqlConnection(connectionString);
-            connection.Open();
-            string sql="""
+            int res = -1;
+            using var connection = new MySqlConnection(connectionString);
+
+            string sql = """
             UPDATE Usuarios
             SET Estado= false
             WHERE IdUsuario= @IdUsuario
             """;
-            using var command=new MySqlCommand(sql,connection);
-            command.CommandType=CommandType.Text;
+            using var command = new MySqlCommand(sql, connection);
+            command.CommandType = CommandType.Text;
 
-            command.Parameters.AddWithValue("@IdUsuario",id);
+            command.Parameters.AddWithValue("@IdUsuario", id);
 
-            res=command.ExecuteNonQuery();
+            connection.Open();
+            res = command.ExecuteNonQuery();
             return res;
         }
 
- public int Modificacion(Usuario usuario)
+        public int Modificacion(Usuario usuario)
         {
             int res = -1;
             using var connection = new MySqlConnection(connectionString);
-            connection.Open();
+
             string sql = """
                 UPDATE Usuarios
                 SET UserName = @UserName,
@@ -80,6 +84,7 @@ public int Alta(Usuario usuario)
             command.Parameters.AddWithValue("@Estado", usuario.Estado);
             command.Parameters.AddWithValue("@IdUsuario", usuario.IdUsuario);
 
+            connection.Open();
             res = command.ExecuteNonQuery();
             return res;
         }
@@ -88,7 +93,7 @@ public int Alta(Usuario usuario)
         {
             int res = -1;
             using var connection = new MySqlConnection(connectionString);
-            connection.Open();
+
             string sql = """
                 UPDATE Usuarios
                 SET Estado = true
@@ -98,7 +103,7 @@ public int Alta(Usuario usuario)
             command.CommandType = CommandType.Text;
 
             command.Parameters.AddWithValue("@IdUsuario", id);
-
+            connection.Open();
             res = command.ExecuteNonQuery();
             return res;
         }
@@ -107,19 +112,18 @@ public int Alta(Usuario usuario)
         {
             IList<Usuario> res = new List<Usuario>();
             using var connection = new MySqlConnection(connectionString);
-            connection.Open();
-            int offset = (pagina - 1) * tamPagina;
 
-            string sql = """
-                SELECT IdUsuario, UserName, Password, RolUsuario, Estado
-                FROM Usuarios
-                WHERE Estado = true
-                LIMIT @tamPagina OFFSET @offset;
-                """;
+
+            string sql = $"""
+                     SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+                     FROM Usuarios
+                     WHERE Estado = 1
+                     LIMIT {tamPagina} 
+                    OFFSET {(pagina - 1) * tamPagina};
+                    """;
             using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@tamPagina", tamPagina);
-            command.Parameters.AddWithValue("@offset", offset);
 
+            connection.Open();
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -132,19 +136,18 @@ public int Alta(Usuario usuario)
         {
             IList<Usuario> res = new List<Usuario>();
             using var connection = new MySqlConnection(connectionString);
-            connection.Open();
-            int offset = (pagina - 1) * tamPagina;
 
-            string sql = """
-                SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+
+            string sql = $"""
+                 SELECT IdUsuario, UserName, Password, RolUsuario, Estado
                 FROM Usuarios
-                WHERE Estado = false
-                LIMIT @tamPagina OFFSET @offset;
-                """;
+                WHERE Estado = 0
+                LIMIT {tamPagina} 
+                OFFSET {(pagina - 1) * tamPagina};
+             """;
             using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@tamPagina", tamPagina);
-            command.Parameters.AddWithValue("@offset", offset);
 
+            connection.Open();
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -157,8 +160,8 @@ public int Alta(Usuario usuario)
         {
             int res = 0;
             using var connection = new MySqlConnection(connectionString);
-            connection.Open();
-            
+
+
             string sql = "SELECT COUNT(*) FROM Usuarios";
             if (soloActivos.HasValue)
             {
@@ -171,6 +174,7 @@ public int Alta(Usuario usuario)
                 command.Parameters.AddWithValue("@Estado", soloActivos.Value);
             }
 
+            connection.Open();
             res = Convert.ToInt32(command.ExecuteScalar());
             return res;
         }
@@ -179,7 +183,7 @@ public int Alta(Usuario usuario)
         {
             Usuario? usuario = null;
             using var connection = new MySqlConnection(connectionString);
-            connection.Open();
+
             string sql = """
                 SELECT IdUsuario, UserName, Password, RolUsuario, Estado
                 FROM Usuarios
@@ -188,6 +192,7 @@ public int Alta(Usuario usuario)
             using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@IdUsuario", id);
 
+            connection.Open();
             using var reader = command.ExecuteReader();
             if (reader.Read())
             {
@@ -208,11 +213,6 @@ public int Alta(Usuario usuario)
                 ListaReservas = new List<Reserva>() // Inicializada vacía 
             };
         }
-    
 
-
-
-
-            
-}
+    }
 };

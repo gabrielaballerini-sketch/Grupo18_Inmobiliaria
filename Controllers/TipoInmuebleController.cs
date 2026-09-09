@@ -6,16 +6,16 @@ namespace Grupo18_Inmobiliaria.Controllers
 {
     public class TipoInmuebleController : Controller
     {
-        private readonly RepositorioTipoInmuebleMySql repo;
+        private readonly IRepositorio<TipoInmueble> repo;
 
-        public TipoInmuebleController(RepositorioTipoInmuebleMySql repo)
+        public TipoInmuebleController(IRepositorio<TipoInmueble> repo)
         {
             this.repo = repo;
         }
 
         // --- ALTA (CREATE) ---
 
-        // GET: Propietario/Create
+        // GET: TipoInmueble/Create
         [HttpGet]
         public IActionResult Create()
         {
@@ -60,6 +60,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
             repo.Alta(tipoInmueble);
+            TempData["Mensaje"] = "Tipo de inmueble creado con éxito";
             return RedirectToAction(nameof(Index));
         }
 
@@ -152,11 +153,11 @@ namespace Grupo18_Inmobiliaria.Controllers
             try
             {
                 repo.Reactivar(id);
-                TempData["Mensaje"] = "Propietario reactivado con éxito.";
+                TempData["Mensaje"] = "Tipo de Inmueble reactivado con éxito.";
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al reactivar el propietario." + ex.Message;
+                TempData["Error"] = "Error al reactivar el tipo de inmueble." + ex.Message;
             }
 
             // Redirige siempre de vuelta a la lista de inactivos o a Index

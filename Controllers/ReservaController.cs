@@ -6,15 +6,15 @@ namespace Grupo18_Inmobiliaria.Controllers
 {
     public class ReservaController : Controller
     {
-        private readonly RepositorioReservaMySql repo_Reserva;
-        private readonly RepositorioInquilinoMySql repo_Inquilino;
-        private readonly RepositorioInmuebleMySql repo_Inmueble;
+        private readonly IRepositorioReserva repo_Reserva;
+        private readonly IRepositorioInquilino repo_Inquilino;
+        private readonly IRepositorioInmueble repo_Inmueble;
 
 
         public ReservaController(
-            RepositorioReservaMySql repoReserva,
-            RepositorioInquilinoMySql repoInquilino,
-            RepositorioInmuebleMySql repoInmueble)
+            IRepositorioReserva repoReserva,
+            IRepositorioInquilino repoInquilino,
+            IRepositorioInmueble repoInmueble)
         {
             this.repo_Reserva = repoReserva;
             this.repo_Inquilino = repoInquilino;
@@ -22,17 +22,17 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
-      
+
         // INDEX - RESERVAS ACTIVAS
-    
+
 
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
         {
             try
             {
-                var lista =repo_Reserva.ObtenerActivos( pagina,tamPagina);
+                var lista = repo_Reserva.ObtenerActivos(pagina, tamPagina);
 
-                int totalRegistros =repo_Reserva.ObtenerCantidad(true);
+                int totalRegistros = repo_Reserva.ObtenerCantidad(true);
 
                 ViewBag.PaginaActual = pagina;
 
@@ -47,21 +47,21 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
-       
+
         // CREATE - GET
-       
-public IActionResult Create()
-{
-   
-CargarDesplegables();
+
+        public IActionResult Create()
+        {
+
+            CargarDesplegables();
 
 
-    return View();
-}
+            return View();
+        }
 
-       
+
         // CREATE - POST
-     
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -74,58 +74,58 @@ CargarDesplegables();
                  k.StartsWith("Usuario") ||
                  k.StartsWith("PagosEfectuados"))
              .ToList())
-                    {
-                        ModelState.Remove(key);
-                    }
+            {
+                ModelState.Remove(key);
+            }
 
 
-          
+
 
 
             if (reserva.IdInquilino <= 0)
             {
-                ModelState.AddModelError("IdInquilino","Debe seleccionar un inquilino.");
+                ModelState.AddModelError("IdInquilino", "Debe seleccionar un inquilino.");
             }
 
 
-           
-            
+
+
             // Verificar que haya un inmueble seleccionado
-         
+
 
             if (reserva.IdInmueble <= 0)
             {
-                ModelState.AddModelError("IdInmueble","Debe seleccionar un inmueble.");
+                ModelState.AddModelError("IdInmueble", "Debe seleccionar un inmueble.");
             }
 
 
-          
-           
+
+
             // La fecha de inicio debe ser anterior
             // a la fecha de finalización
 
 
-            
+
             if (reserva.FechaInicio < DateTime.Now)
             {
-                
-                  ModelState.AddModelError( "FechaInicio","La fecha de inicio no debe ser anterior a la fecha actual.");
+
+                ModelState.AddModelError("FechaInicio", "La fecha de inicio no debe ser anterior a la fecha actual.");
 
             }
 
-          
+
 
             if (reserva.FechaInicio >= reserva.FechaFin)
             {
-                ModelState.AddModelError("FechaFin","La fecha de finalización debe ser posterior a la fecha de inicio." );
+                ModelState.AddModelError("FechaFin", "La fecha de finalización debe ser posterior a la fecha de inicio.");
             }
 
 
-            
-           
+
+
             // Verificar que el inmueble no esté reservado
             // durante ese período
-          
+
 
             if (reserva.IdInmueble > 0 && reserva.FechaInicio < reserva.FechaFin)
             {
@@ -137,7 +137,7 @@ CargarDesplegables();
 
                 if (existeReserva)
                 {
-                    ModelState.AddModelError( "IdInmueble","El inmueble ya está reservado durante ese período.");
+                    ModelState.AddModelError("IdInmueble", "El inmueble ya está reservado durante ese período.");
                 }
             }
 
@@ -148,7 +148,7 @@ CargarDesplegables();
 
             if (!ModelState.IsValid)
             {
-                
+
 
                 CargarDesplegables(reserva.IdInquilino, reserva.IdInmueble);
 
@@ -168,7 +168,7 @@ CargarDesplegables();
 
                 repo_Reserva.Alta(reserva);
 
-                TempData["Mensaje"] ="Reserva creada con éxito.";
+                TempData["Mensaje"] = "Reserva creada con éxito.";
 
                 return RedirectToAction(nameof(Index));
             }
@@ -176,16 +176,16 @@ CargarDesplegables();
             {
                 TempData["Error"] = "Error al crear la reserva: " + ex.Message;
 
-                CargarDesplegables(reserva.IdInquilino,reserva.IdInmueble );
+                CargarDesplegables(reserva.IdInquilino, reserva.IdInmueble);
 
                 return View(reserva);
             }
         }
 
 
-              
+
         // DELETE - GET
-       
+
 
         [HttpGet]
         public IActionResult Delete(int id)
@@ -202,7 +202,7 @@ CargarDesplegables();
 
 
         // DELETE - POST
-       
+
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -223,9 +223,9 @@ CargarDesplegables();
         }
 
 
-       
+
         // INACTIVOS
-     
+
 
         public IActionResult Inactivos(
             int pagina = 1,
@@ -233,13 +233,13 @@ CargarDesplegables();
         {
             try
             {
-                var inactivos = repo_Reserva.ObtenerInactivos( pagina, tamPagina);
+                var inactivos = repo_Reserva.ObtenerInactivos(pagina, tamPagina);
 
                 int totalRegistros = repo_Reserva.ObtenerCantidad(false);
 
                 ViewBag.PaginaActual = pagina;
 
-                ViewBag.TotalPaginas = (int)Math.Ceiling( (double)totalRegistros / tamPagina);
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
                 return View(inactivos);
             }
@@ -250,9 +250,9 @@ CargarDesplegables();
         }
 
 
-       
+
         // REACTIVAR
-       
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -266,7 +266,7 @@ CargarDesplegables();
             }
             catch (Exception ex)
             {
-                TempData["Error"] ="Error al reactivar la reserva: " + ex.Message;
+                TempData["Error"] = "Error al reactivar la reserva: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Inactivos));
@@ -274,55 +274,55 @@ CargarDesplegables();
 
 
 
-// cargar monto a la vista x dia
-[HttpGet]
-public IActionResult ObtenerPrecioInmueble(int id)
-{
-    var inmueble = repo_Inmueble.ObtenerPorId(id);
-    if (inmueble == null) return NotFound();
-    return Json(new { precio = inmueble.PrecioAlquiler });
-}
+        // cargar monto a la vista x dia
+        [HttpGet]
+        public IActionResult ObtenerPrecioInmueble(int id)
+        {
+            var inmueble = repo_Inmueble.ObtenerPorId(id);
+            if (inmueble == null) return NotFound();
+            return Json(new { precio = inmueble.PrecioAlquiler });
+        }
 
 
 
-        
+
         // DESPLEGABLES
-    
+
 
         private void CargarDesplegables(
             int selectedInquilino = 0,
             int selectedInmueble = 0)
         {
-           
+
             // INQUILINOS ACTIVOS
-           
 
-            var inquilinos = repo_Inquilino.ObtenerActivos()?? new List<Inquilino>();
 
-            ViewBag.Inquilinos =new SelectList(inquilinos.Select(i => new
-                    {
-                        Id = i.IdInquilino,
-                        NombreCompleto =
+            var inquilinos = repo_Inquilino.ObtenerActivos() ?? new List<Inquilino>();
+
+            ViewBag.Inquilinos = new SelectList(inquilinos.Select(i => new
+            {
+                Id = i.IdInquilino,
+                NombreCompleto =
                             $"{i.Nombre} {i.Apellido}"
-                    }),
+            }),
                     "Id",
                     "NombreCompleto",
                     selectedInquilino
                 );
 
 
-           
-            // INMUEBLES ACTIVOS
-         
 
-            var inmuebles = repo_Inmueble.ObtenerActivos()?? new List<Inmueble>();
+            // INMUEBLES ACTIVOS
+
+
+            var inmuebles = repo_Inmueble.ObtenerActivos() ?? new List<Inmueble>();
 
             ViewBag.Inmuebles = new SelectList(inmuebles.Select(i => new
-                    {
-                        Id = i.IdInmueble,
-                        Descripcion =
+            {
+                Id = i.IdInmueble,
+                Descripcion =
                             $"{i.Direccion}"
-                    }),
+            }),
                     "Id",
                     "Descripcion",
                     selectedInmueble

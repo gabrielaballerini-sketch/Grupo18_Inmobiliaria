@@ -5,9 +5,9 @@ namespace Grupo18_Inmobiliaria.Controllers
 {
     public class InquilinoController : Controller
     {
-        private readonly RepositorioInquilinoMySql repo;
+        private readonly IRepositorioInquilino repo;
 
-        public InquilinoController(RepositorioInquilinoMySql repo)
+        public InquilinoController(IRepositorioInquilino repo)
         {
             this.repo = repo;
         }
@@ -51,7 +51,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return View(inquilino);
             }
-            if (repo.ObtenerporDni(inquilino.Dni))
+            if (repo.ObtenerPorDni(inquilino.Dni))
             {
                 ModelState.AddModelError("Dni", "El dni ya esta registrado");
                 return View(inquilino);
