@@ -1,0 +1,169 @@
+@model Grupo18_Inmobiliaria.Models.Reserva
+
+@{
+    ViewData["Title"] = "Detalle de Reserva";
+}
+
+<div class="container mt-4" id="appReserva">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Detalle de Reserva #@Model.IdReserva</h2>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a la Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Estado de Carga -->
+    <div v-if="cargando" class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando datos de la reserva...</p>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="alert alert-warning">
+        {{ error }}
+    </div>
+
+    <!-- Contenido Principal con Vue -->
+    <div v-else-if="reserva" class="row">
+        <!-- Columna Izquierda: Datos de la Reserva -->
+        <div class="col-md-7">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-calendar-check"></i> Datos de la Reserva</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Fecha Inicio</dt>
+                        <dd class="col-sm-8">{{ reserva.fechaInicio }}</dd>
+
+                        <dt class="col-sm-4">Fecha Fin</dt>
+                        <dd class="col-sm-8">{{ reserva.fechaFin }}</dd>
+
+                        <dt class="col-sm-4">Duración</dt>
+                        <dd class="col-sm-8">{{ calcularDias }} día(s)</dd>
+
+                        <dt class="col-sm-4">Monto Diario</dt>
+                        <dd class="col-sm-8 text-primary fw-bold">${{ reserva.montoDiario }}</dd>
+
+                        <dt class="col-sm-4">Monto Estimado</dt>
+                        <dd class="col-sm-8 text-success fw-bold">${{ calcularMontoTotal }}</dd>
+
+                        <dt class="col-sm-4">Estado</dt>
+                        <dd class="col-sm-8">
+                            <span v-if="reserva.estado" class="badge bg-success">Activa</span>
+                            <span v-else class="badge bg-danger">Inactiva / Cancelada</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Inquilino e Inmueble -->
+        <div class="col-md-5">
+            <!-- Inquilino -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-fill"></i> Inquilino</h5>
+                </div>
+                <div class="card-body">
+                    <div v-if="reserva.inquilino">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <strong>Nombre:</strong> {{ reserva.inquilino.nombre }} {{ reserva.inquilino.apellido }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>DNI:</strong> {{ reserva.inquilino.dni }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>Teléfono:</strong> {{ reserva.inquilino.telefono }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>Email:</strong> {{ reserva.inquilino.email }}
+                            </li>
+                        </ul>
+                    </div>
+                    <p v-else class="text-muted mb-0">Sin inquilino asignado.</p>
+                </div>
+            </div>
+
+            <!-- Inmueble -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-house-door-fill"></i> Inmueble</h5>
+                </div>
+                <div class="card-body">
+                    <div v-if="reserva.inmueble">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <strong>Dirección:</strong> {{ reserva.inmueble.direccion }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>Capacidad:</strong> {{ reserva.inmueble.capacidad }} personas
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>Precio Alquiler Base:</strong> ${{ reserva.inmueble.precioAlquiler }}
+                            </li>
+                        </ul>
+                    </div>
+                    <p v-else class="text-muted mb-0">Sin inmueble asignado.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    idReserva: @Model.IdReserva,
+                    reserva: null,
+                    cargando: true,
+                    error: null
+                }
+            },
+            computed: {
+                calcularDias() {
+                    if (!this.reserva) return 0;
+                    const inicio = new Date(this.reserva.fechaInicio);
+                    const fin = new Date(this.reserva.fechaFin);
+                    const diffTime = Math.abs(fin - inicio);
+                    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                },
+                calcularMontoTotal() {
+                    return this.calcularDias * (this.reserva?.montoDiario || 0);
+                }
+            },
+            mounted() {
+                this.obtenerReserva();
+            },
+            methods: {
+                obtenerReserva() {
+                    fetch(`/Reserva/ObtenerJson/${this.idReserva}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error('No se pudo obtener la reserva');
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.reserva = data;
+                            this.cargando = false;
+                        })
+                        .catch(err => {
+                            console.error('Error:', err);
+                            this.error = "No se pudieron cargar los datos de la reserva.";
+                            this.cargando = false;
+                        });
+                }
+            }
+        }).mount('#appReserva');
+    </script>
+}

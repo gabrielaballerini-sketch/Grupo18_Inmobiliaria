@@ -1,0 +1,140 @@
+@model Grupo18_Inmobiliaria.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Detalle del Inmueble";
+}
+
+<div class="container mt-4" id="appInmueble">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Detalle del Inmueble #@Model.IdInmueble</h2>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a la Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Estado de Carga -->
+    <div v-if="cargando" class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando datos del inmueble...</p>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="alert alert-warning">
+        {{ error }}
+    </div>
+
+    <!-- Contenido Principal con Vue -->
+    <div v-else-if="inmueble" class="row">
+        <!-- Columna Izquierda: Datos del Inmueble -->
+        <div class="col-md-7">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-house-door"></i> Datos de la Propiedad</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Dirección</dt>
+                        <dd class="col-sm-8">{{ inmueble.direccion }}</dd>
+
+                        <dt class="col-sm-4">Tipo Inmueble</dt>
+                        <dd class="col-sm-8">
+                            {{ inmueble.tipoInmueble ? inmueble.tipoInmueble.descripcion : 'N/A' }}
+                        </dd>
+
+                        <dt class="col-sm-4">Capacidad</dt>
+                        <dd class="col-sm-8">{{ inmueble.capacidad }} personas</dd>
+
+                        <dt class="col-sm-4">Precio Alquiler</dt>
+                        <dd class="col-sm-8 text-success fw-bold">${{ inmueble.precioAlquiler }}</dd>
+
+                        <dt class="col-sm-4">Porcentaje Reserva</dt>
+                        <dd class="col-sm-8">{{ inmueble.porcentajeReserva }}%</dd>
+
+                        <dt class="col-sm-4">Ubicación</dt>
+                        <dd class="col-sm-8">Lat: {{ inmueble.latitud }} | Long: {{ inmueble.longitud }}</dd>
+
+                        <dt class="col-sm-4">Estado</dt>
+                        <dd class="col-sm-8">
+                            <span v-if="inmueble.estado" class="badge bg-success">Disponible / Activo</span>
+                            <span v-else class="badge bg-danger">Inactivo</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Datos del Propietario -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-badge"></i> Propietario</h5>
+                </div>
+                <div class="card-body">
+                    <div v-if="inmueble.propietario">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0">
+                                <strong>Nombre:</strong> {{ inmueble.propietario.nombre }} {{ inmueble.propietario.apellido }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>DNI / CUIT:</strong> {{ inmueble.propietario.dni }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>Teléfono:</strong> {{ inmueble.propietario.telefono }}
+                            </li>
+                            <li class="list-group-item px-0">
+                                <strong>Email:</strong> {{ inmueble.propietario.email }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div v-else class="text-muted">
+                        No hay información del propietario disponible.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    idInmueble: @Model.IdInmueble,
+                    inmueble: null,
+                    cargando: true,
+                    error: null
+                }
+            },
+            mounted() {
+                this.obtenerInmueble();
+            },
+            methods: {
+                obtenerInmueble() {
+                    fetch(`/Inmueble/ObtenerJson/${this.idInmueble}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error('No se pudo obtener la información del inmueble');
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.inmueble = data;
+                            this.cargando = false;
+                        })
+                        .catch(err => {
+                            console.error('Error:', err);
+                            this.error = "No se pudieron cargar los datos del inmueble.";
+                            this.cargando = false;
+                        });
+                }
+            }
+        }).mount('#appInmueble');
+    </script>
+}

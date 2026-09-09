@@ -51,13 +51,21 @@
                                 <a asp-action="Edit"
                                    asp-route-id="@item.IdInmueble"
                                    class="btn btn-warning btn-sm">
-                                    Editar
+                                     <i class="bi bi-pencil-square"></i>
                                 </a>
 
                                 <a asp-action="Delete"
                                    asp-route-id="@item.IdInmueble"
                                    class="btn btn-danger btn-sm">
-                                    Desactivar
+                                      <i class="bi bi-trash"></i>
+
+
+                                 <a asp-action="Details" asp-route-id="@item.IdInmueble" class="btn btn-info btn-sm text-white">
+                                 <i class="bi bi-eye"></i>
+                                 </a> 
+
+
+
                                 </a>
                             </td>
                         </tr>

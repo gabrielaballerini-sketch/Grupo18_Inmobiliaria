@@ -229,6 +229,66 @@ namespace Grupo18_Inmobiliaria.Controllers
                 tipos, "IdTipoInmueble", "Descripcion", selectedTipo);
         }
 
+//vue
+// GET: Inmueble/PorPropietario/5
+[HttpGet]
+public IActionResult PorPropietario(int id)
+{
+    //filtra los inmuebles de este propietario
+    var lista = repo_Inmueble.BuscarPorPropietario(id); 
+    return Json(lista);
+}
+
+// GET: Inmueble/ObtenerJson/5
+[HttpGet]
+public IActionResult ObtenerJson(int id)
+{
+    var inmueble = repo_Inmueble.ObtenerPorId(id);
+    if (inmueble == null) return NotFound();
+
+    return Json(new {
+        idInmueble = inmueble.IdInmueble,
+        direccion = inmueble.Direccion,
+        capacidad = inmueble.Capacidad,
+        latitud = inmueble.Latitud,
+        longitud = inmueble.Longitud,
+        precioAlquiler = inmueble.PrecioAlquiler,
+        porcentajeReserva = inmueble.PorcentajeReserva,
+        estado = inmueble.Estado,
+        tipoInmueble = inmueble.TipoInmueble != null ? new {
+            idTipoInmueble = inmueble.TipoInmueble.IdTipoInmueble,
+            descripcion = inmueble.TipoInmueble.Descripcion
+        } : null,
+        propietario = inmueble.Propietario != null ? new {
+            idPropietario = inmueble.Propietario.IdPropietario,
+            nombre = inmueble.Propietario.Nombre,
+            apellido = inmueble.Propietario.Apellido,
+            dni = inmueble.Propietario.Dni,
+            telefono = inmueble.Propietario.Telefono,
+            email = inmueble.Propietario.Email
+        } : null
+    });
+}
+
+
+
+
+
+
+
+[HttpGet]
+public IActionResult Details(int id)
+{
+    var inmueble = repo_Inmueble.ObtenerPorId(id);
+    if (inmueble == null)
+    {
+        return NotFound();
+    }
+    return View(inmueble);
+}
+
+
+
     }
 
 }

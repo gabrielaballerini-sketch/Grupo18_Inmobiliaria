@@ -1,0 +1,132 @@
+@model Grupo18_Inmobiliaria.Models.Propietario
+
+@{
+    ViewData["Title"] = "Detalle del Propietario";
+}
+
+<div class="container mt-4">
+    <h2>Detalle del Propietario</h2>
+
+    <!-- Datos del Propietario (MVC Tradicional) -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Información Personal</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">ID Propietario</dt>
+                <dd class="col-sm-9">@Model.IdPropietario</dd>
+
+                <dt class="col-sm-3">Nombre</dt>
+                <dd class="col-sm-9">@Model.Nombre @Model.Apellido</dd>
+
+                <dt class="col-sm-3">DNI / CUIT</dt>
+                <dd class="col-sm-9">@Model.Dni</dd>
+
+                <dt class="col-sm-3">Teléfono</dt>
+                <dd class="col-sm-9">@Model.Telefono</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Sección de Inmuebles Dinámica con Vue.js -->
+    <div id="appInmuebles">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Inmuebles Asociados</h5>
+                <span class="badge bg-light text-dark">{{ inmuebles.length }} propiedades</span>
+            </div>
+            <div class="card-body">
+                
+                <!-- Mensaje de Carga -->
+                <div v-if="cargando" class="text-center my-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando inmuebles...</p>
+                </div>
+
+                <!-- Si el propietario no tiene inmuebles -->
+                <div v-else-if="inmuebles.length === 0" class="alert alert-info mb-0">
+                    Este propietario no tiene inmuebles registrados actualmente.
+                </div>
+
+                <!-- Tabla de Inmuebles -->
+                <div v-else class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Dirección</th>
+                                <th>Capacidad</th>
+                                <th>Precio Alquiler</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in inmuebles" :key="item.idInmueble">
+                                <td>{{ item.idInmueble }}</td>
+                                <td>{{ item.direccion }}</td>
+                                <td>{{ item.capacidad }} pers.</td>
+                                <td>${{ item.precioAlquiler }}</td>
+                                <td>{{ item.tipoInmueble ? item.tipoInmueble.descripcion : 'N/A' }}</td>
+                                <td>
+                                    <span v-if="item.estado" class="badge bg-success">Activo</span>
+                                    <span v-else class="badge bg-danger">Inactivo</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver a la Lista</a>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- CDN de Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    idPropietario: @Model.IdPropietario,
+                    inmuebles: [],
+                    cargando: true
+                }
+            },
+            mounted() {
+                this.obtenerInmuebles();
+            },
+            methods: {
+                obtenerInmuebles() {
+                    fetch(`/Inmueble/PorPropietario/${this.idPropietario}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Error al obtener datos');
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.inmuebles = data;
+                            this.cargando = false;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            this.cargando = false;
+                        });
+                }
+            }
+        }).mount('#appInmuebles');
+    </script>
+}

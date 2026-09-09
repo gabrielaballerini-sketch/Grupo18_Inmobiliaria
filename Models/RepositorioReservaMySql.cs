@@ -182,20 +182,19 @@ public int Modificacion(Reserva reserva)
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = $"""
-                    SELECT
-                        r.IdReserva,
-                        r.MontoDiario,
-                        r.FechaInicio,
-                        r.FechaFin,
-                        r.Estado,
-                        r.IdInquilino,
-                        r.IdInmueble,
-                        r.IdUsuario,
-                        i.Nombre AS InquilinoNombre,
-                        i.Apellido AS InquilinoApellido,
-                        inm.Direccion AS InmuebleDireccion
+                   SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    r.IdInquilino, 
+                    iq.Nombre AS InqNombre, 
+                    iq.Apellido AS InqApellido, 
+                    iq.Dni AS InqDni, 
+                    iq.Telefono AS InqTelefono, 
+                     iq.Email AS InqEmail,
+                     r.IdInmueble, 
+                    inm.Direccion AS InmDireccion, 
+                    inm.Capacidad AS InmCapacidad, 
+                     inm.PrecioAlquiler AS InmPrecioAlquiler
                     FROM Reservas r
-                    JOIN inquilinos i ON r.IdInquilino = i.IdInquilino
+                    JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
                     WHERE r.Estado = 1
                     LIMIT {tamPagina}
@@ -246,15 +245,20 @@ public int Modificacion(Reserva reserva)
                 Inquilino = new Inquilino
                 {
                     IdInquilino = reader.GetInt32(reader.GetOrdinal("IdInquilino")),
-                    Nombre = reader.GetString(reader.GetOrdinal("InquilinoNombre")),
-                    Apellido = reader.GetString(reader.GetOrdinal("InquilinoApellido"))
+            Nombre = reader.GetString(reader.GetOrdinal("InqNombre")),
+            Apellido = reader.GetString(reader.GetOrdinal("InqApellido")),
+            Dni = reader.IsDBNull(reader.GetOrdinal("InqDni")) ? "" : reader.GetString(reader.GetOrdinal("InqDni")),
+            Telefono = reader.IsDBNull(reader.GetOrdinal("InqTelefono")) ? "" : reader.GetString(reader.GetOrdinal("InqTelefono")),
+            Email = reader.IsDBNull(reader.GetOrdinal("InqEmail")) ? "" : reader.GetString(reader.GetOrdinal("InqEmail"))
                 },
 
 
                 Inmueble = new Inmueble
                 {
-                    IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
-                    Direccion = reader.GetString(reader.GetOrdinal("InmuebleDireccion"))
+                   IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
+                   Direccion = reader.GetString(reader.GetOrdinal("InmDireccion")),
+                   Capacidad = reader.GetInt32(reader.GetOrdinal("InmCapacidad")),
+                   PrecioAlquiler = reader.GetDecimal(reader.GetOrdinal("InmPrecioAlquiler"))
                 }
             };
 
@@ -275,20 +279,19 @@ public int Modificacion(Reserva reserva)
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = $"""
-                    SELECT
-                        r.IdReserva,
-                        r.MontoDiario,
-                        r.FechaInicio,
-                        r.FechaFin,
-                        r.Estado,
-                        r.IdInquilino,
-                        r.IdInmueble,
-                        r.IdUsuario,
-                        i.Nombre AS InquilinoNombre,
-                        i.Apellido AS InquilinoApellido,
-                        inm.Direccion AS InmuebleDireccion
+                    SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    r.IdInquilino, 
+                    iq.Nombre AS InqNombre, 
+                    iq.Apellido AS InqApellido, 
+                    iq.Dni AS InqDni, 
+                    iq.Telefono AS InqTelefono, 
+                     iq.Email AS InqEmail,
+                     r.IdInmueble, 
+                    inm.Direccion AS InmDireccion, 
+                    inm.Capacidad AS InmCapacidad, 
+                     inm.PrecioAlquiler AS InmPrecioAlquiler
                     FROM Reservas r
-                    JOIN inquilinos i ON r.IdInquilino = i.IdInquilino
+                     JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
                     WHERE r.Estado = 0
                     LIMIT {tamPagina}
@@ -321,28 +324,26 @@ public int Modificacion(Reserva reserva)
         // OBTENER POR ID
 
 
-        public Reserva? ObtenerPorId(int id)
+        public Reserva ObtenerPorId(int id)
         {
             Reserva? reserva = null;
 
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = """
-                    SELECT
-                        r.IdReserva,
-                        r.MontoDiario,
-                        r.FechaInicio,
-                        r.FechaFin,
-                        r.Estado,
-                        r.IdInquilino,
-                        r.IdInmueble,
-                        r.IdUsuario,
-                        i.Nombre AS InquilinoNombre,
-                        i.Apellido AS InquilinoApellido,
-                        inm.Direccion AS InmuebleDireccion
-
+                    SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    r.IdInquilino, 
+                    iq.Nombre AS InqNombre, 
+                    iq.Apellido AS InqApellido, 
+                    iq.Dni AS InqDni, 
+                    iq.Telefono AS InqTelefono, 
+                     iq.Email AS InqEmail,
+                     r.IdInmueble, 
+                    inm.Direccion AS InmDireccion, 
+                    inm.Capacidad AS InmCapacidad, 
+                     inm.PrecioAlquiler AS InmPrecioAlquiler
                     FROM Reservas r
-                    JOIN inquilinos i ON r.IdInquilino = i.IdInquilino
+                     JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
 
                     WHERE r.IdReserva = @IdReserva;

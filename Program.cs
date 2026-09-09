@@ -23,9 +23,9 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IRepositorioPropietario,RepositorioPropietarioMySql>();
 builder.Services.AddScoped<IRepositorioInquilino,RepositorioInquilinoMySql>();
-builder.Services.AddScoped< RepositorioTipoInmuebleMySql>();
-//builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmuebleMySql>();
-//builder.Services.AddScoped<IRepositorioReserva, RepositorioReservaMySql>();
+builder.Services.AddScoped< IRepositorio<TipoInmueble>,RepositorioTipoInmuebleMySql>();
+builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmuebleMySql>();
+builder.Services.AddScoped<IRepositorioReserva, RepositorioReservaMySql>();
 
 
 

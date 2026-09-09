@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace Grupo18_Inmobiliaria.Models
 {
-    public class RepositorioInmuebleMySql : RepositorioBase ,IRepositorio<Inmueble>
+    public class RepositorioInmuebleMySql : RepositorioBase, IRepositorioInmueble
     {
         public RepositorioInmuebleMySql(IConfiguration configuration) : base(configuration)
         {
@@ -120,39 +120,44 @@ namespace Grupo18_Inmobiliaria.Models
             }
             return res;
         }
-   
 
-  // OBTENER TODOS los activos
+
+        // OBTENER TODOS los activos
         public IList<Inmueble> ObtenerActivos(int pagina = 1, int tamPagina = 10)
         {
-           IList<Inmueble> listaActivos = new List<Inmueble>();
+            IList<Inmueble> listaActivos = new List<Inmueble>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
 
-             string query = $@"
-                    SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-                           i.IdPropietario, p.Nombre AS PropNombre, p.Apellido AS PropApellido,
-                           i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
+                string query = $@"
+             SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
+                 i.IdPropietario, 
+                 p.Nombre AS PropNombre, 
+                 p.Apellido AS PropApellido, 
+                 p.Dni AS PropDni, 
+                 p.Telefono AS PropTelefono, 
+                 p.Email AS PropEmail,
+                  i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
                     FROM inmuebles i
                      JOIN propietarios p ON i.IdPropietario = p.IdPropietario
                      JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
                     WHERE i.Estado = 1
                     LIMIT {tamPagina} OFFSET {(pagina - 1) * tamPagina};";
 
-            
+
 
                 using (var command = new MySqlCommand(query, connection))
-                 {
-                   command.CommandType = CommandType.Text;
-                   connection.Open();
+                {
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
 
-        
+
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            
+
                             listaActivos.Add(MapearInmueble(reader));
                         }
                     }
@@ -163,26 +168,29 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
 
-private Inmueble MapearInmueble(MySqlDataReader reader)
+        private Inmueble MapearInmueble(MySqlDataReader reader)
         {
             return new Inmueble
             {
                 IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
                 Direccion = reader.GetString(reader.GetOrdinal("Direccion")),
                 Capacidad = reader.GetInt32(reader.GetOrdinal("Capacidad")),
-                Latitud = reader.GetDecimal(reader.GetOrdinal("Latitud")) ,
-                Longitud = reader.GetDecimal(reader.GetOrdinal("Longitud")) ,
+                Latitud = reader.GetDecimal(reader.GetOrdinal("Latitud")),
+                Longitud = reader.GetDecimal(reader.GetOrdinal("Longitud")),
                 PrecioAlquiler = reader.GetDecimal(reader.GetOrdinal("PrecioAlquiler")),
                 Estado = reader.GetBoolean(reader.GetOrdinal("Estado")),
                 IdPropietario = reader.GetInt32(reader.GetOrdinal("IdPropietario")),
                 IdTipoInmueble = reader.GetInt32(reader.GetOrdinal("IdTipoInmueble")),
-                
+
                 // Mapeo de objetos anidados/relacionados:
                 Propietario = new Propietario
                 {
                     IdPropietario = reader.GetInt32(reader.GetOrdinal("IdPropietario")),
                     Nombre = reader.GetString(reader.GetOrdinal("PropNombre")),
-                    Apellido = reader.GetString(reader.GetOrdinal("PropApellido"))
+                    Apellido = reader.GetString(reader.GetOrdinal("PropApellido")),
+                    Dni = reader.IsDBNull(reader.GetOrdinal("PropDni")) ? "" : reader.GetString(reader.GetOrdinal("PropDni")),
+                    Telefono = reader.IsDBNull(reader.GetOrdinal("PropTelefono")) ? "" : reader.GetString(reader.GetOrdinal("PropTelefono")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("PropEmail")) ? "" : reader.GetString(reader.GetOrdinal("PropEmail"))
                 },
                 TipoInmueble = new TipoInmueble
                 {
@@ -194,36 +202,41 @@ private Inmueble MapearInmueble(MySqlDataReader reader)
 
 
 
- public IList<Inmueble> ObtenerInactivos(int pagina = 1, int tamPagina = 10)
+        public IList<Inmueble> ObtenerInactivos(int pagina = 1, int tamPagina = 10)
         {
-           IList<Inmueble> listaInactivos = new List<Inmueble>();
+            IList<Inmueble> listaInactivos = new List<Inmueble>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
 
-             string query = $@"
-                    SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-                           i.IdPropietario, p.Nombre AS PropNombre, p.Apellido AS PropApellido,
-                           i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
+                string query = $@"
+                   SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
+                    i.IdPropietario, 
+                     p.Nombre AS PropNombre, 
+                      p.Apellido AS PropApellido, 
+                     p.Dni AS PropDni, 
+                      p.Telefono AS PropTelefono, 
+                      p.Email AS PropEmail,
+                       i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
                     FROM inmuebles i
                      JOIN propietarios p ON i.IdPropietario = p.IdPropietario
                      JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
                     WHERE i.Estado = 0
                     LIMIT {tamPagina} OFFSET {(pagina - 1) * tamPagina};";
 
-            
+
 
                 using (var command = new MySqlCommand(query, connection))
-                 {
-                   command.CommandType = CommandType.Text;
-                   connection.Open();
+                {
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
 
-        
+
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            
+
                             listaInactivos.Add(MapearInmueble(reader));
                         }
                     }
@@ -237,16 +250,21 @@ private Inmueble MapearInmueble(MySqlDataReader reader)
 
 
 
- public Inmueble? ObtenerPorId(int id)
+        public Inmueble ObtenerPorId(int id)
         {
             Inmueble? Inmueble = null;
 
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = @"
-            SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-                   i.IdPropietario, p.Nombre AS PropNombre, p.Apellido AS PropApellido,
-                   i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
+          SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
+           i.IdPropietario, 
+             p.Nombre AS PropNombre, 
+              p.Apellido AS PropApellido, 
+             p.Dni AS PropDni, 
+              p.Telefono AS PropTelefono, 
+                p.Email AS PropEmail,
+                  i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
             FROM inmuebles i
              JOIN propietarios p ON i.IdPropietario = p.IdPropietario
              JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
@@ -261,8 +279,8 @@ private Inmueble MapearInmueble(MySqlDataReader reader)
                     {
                         if (reader.Read())
                         {
-                          Inmueble=MapearInmueble(reader);
-                            
+                            Inmueble = MapearInmueble(reader);
+
                         }
                     }
                 }
@@ -273,98 +291,103 @@ private Inmueble MapearInmueble(MySqlDataReader reader)
 
 
 
-public int ObtenerCantidad(bool? soloActivos = true)
-{
-    int res = 0;
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = "SELECT COUNT(IdInmueble) FROM inmuebles";
-        
-        if (soloActivos.HasValue)
+        public int ObtenerCantidad(bool? soloActivos = true)
         {
-            sql += " WHERE Estado = @estado";
-        }
-
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            if (soloActivos.HasValue)
+            int res = 0;
+            using (var connection = new MySqlConnection(connectionString))
             {
-                command.Parameters.AddWithValue("@estado", soloActivos.Value ? 1 : 0);
+                string sql = "SELECT COUNT(IdInmueble) FROM inmuebles";
+
+                if (soloActivos.HasValue)
+                {
+                    sql += " WHERE Estado = @estado";
+                }
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    if (soloActivos.HasValue)
+                    {
+                        command.Parameters.AddWithValue("@estado", soloActivos.Value ? 1 : 0);
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+
+                    // Para un COUNT único podés usar ExecuteScalar directamente en vez del DataReader:
+                    res = Convert.ToInt32(command.ExecuteScalar());
+                }
             }
-
-            command.CommandType = CommandType.Text;
-            connection.Open();
-            
-            // Para un COUNT único podés usar ExecuteScalar directamente en vez del DataReader:
-            res = Convert.ToInt32(command.ExecuteScalar());
+            return res;
         }
-    }
-    return res;
-}
 
 
 
 
-public int ModificarPortada(int idInmueble, string ruta)
-{
-    int res = -1;
-    using (var connection = new MySqlConnection(connectionString))
-    {
-   
-        string sql = @"UPDATE inmuebles 
+        public int ModificarPortada(int idInmueble, string ruta)
+        {
+            int res = -1;
+            using (var connection = new MySqlConnection(connectionString))
+            {
+
+                string sql = @"UPDATE inmuebles 
                        SET ImagenUrl = @ruta 
                        WHERE IdInmueble = @IdInmueble;";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.CommandType = CommandType.Text;
-            command.Parameters.AddWithValue("@ruta", ruta);
-            command.Parameters.AddWithValue("@IdInmueble", idInmueble);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@ruta", ruta);
+                    command.Parameters.AddWithValue("@IdInmueble", idInmueble);
 
-            connection.Open();
-            res = command.ExecuteNonQuery();
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                }
+            }
+            return res;
         }
-    }
-    return res;
-}
 
 
 
-public IList<Inmueble> BuscarPorPropietario(int idPropietario)
-{
-    IList<Inmueble> lista = new List<Inmueble>();
+        public IList<Inmueble> BuscarPorPropietario(int idPropietario)
+        {
+            IList<Inmueble> lista = new List<Inmueble>();
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string query = @"
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = @"
             SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-                   i.IdPropietario, p.Nombre AS PropNombre, p.Apellido AS PropApellido,
-                   i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
-            FROM inmuebles i
+              i.IdPropietario, 
+             p.Nombre AS PropNombre, 
+             p.Apellido AS PropApellido, 
+             p.Dni AS PropDni, 
+             p.Telefono AS PropTelefono, 
+              p.Email AS PropEmail,
+              i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
+             FROM inmuebles i
             JOIN propietarios p ON i.IdPropietario = p.IdPropietario
             JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
             WHERE i.IdPropietario = @IdPropietario;";
 
-        using (var command = new MySqlCommand(query, connection))
-        {
-            command.CommandType = CommandType.Text;
-            command.Parameters.AddWithValue("@IdPropietario", idPropietario);
-            
-            connection.Open();
-
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
+                using (var command = new MySqlCommand(query, connection))
                 {
-                    // Aprovechamos tu método MapearInmueble que ya tenías creado
-                    lista.Add(MapearInmueble(reader));
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@IdPropietario", idPropietario);
+
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // Aprovechamos tu método MapearInmueble que ya tenías creado
+                            lista.Add(MapearInmueble(reader));
+                        }
+                    }
                 }
             }
+
+            return lista;
         }
-    }
-
-    return lista;
-}
 
 
 
@@ -377,7 +400,7 @@ public IList<Inmueble> BuscarPorPropietario(int idPropietario)
 
 
 
-   
+
     }
 
 

@@ -328,5 +328,53 @@ namespace Grupo18_Inmobiliaria.Controllers
                     selectedInmueble
                 );
         }
+
+
+// PARA VUE
+// GET: Reserva/ObtenerJson/5
+[HttpGet]
+public IActionResult ObtenerJson(int id)
+{
+    var reserva = repo_Reserva.ObtenerPorId(id);
+    if (reserva == null) return NotFound();
+
+    return Json(new {
+        idReserva = reserva.IdReserva,
+        fechaInicio = reserva.FechaInicio.ToString("yyyy-MM-dd"),
+        fechaFin = reserva.FechaFin.ToString("yyyy-MM-dd"),
+        montoDiario = reserva.MontoDiario,
+        estado = reserva.Estado,
+        inquilino = reserva.Inquilino != null ? new {
+            idInquilino = reserva.Inquilino.IdInquilino,
+            nombre = reserva.Inquilino.Nombre,
+            apellido = reserva.Inquilino.Apellido,
+            dni = reserva.Inquilino.Dni,
+            telefono = reserva.Inquilino.Telefono,
+            email = reserva.Inquilino.Email
+        } : null,
+        inmueble = reserva.Inmueble != null ? new {
+            idInmueble = reserva.Inmueble.IdInmueble,
+            direccion = reserva.Inmueble.Direccion,
+            precioAlquiler = reserva.Inmueble.PrecioAlquiler,
+            capacidad = reserva.Inmueble.Capacidad
+        } : null
+    });
+}
+
+
+
+
+
+// GET: Reserva/Details/5
+[HttpGet]
+public IActionResult Details(int id)
+{
+    var reserva = repo_Reserva.ObtenerPorId(id);
+    if (reserva == null) return NotFound();
+    return View(reserva);
+}
+
+
+
     }
 }
