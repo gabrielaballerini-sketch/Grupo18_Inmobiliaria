@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace Grupo18_Inmobiliaria.Models
 {
-    public class RepositorioInmuebleMySql : RepositorioBase
+    public class RepositorioInmuebleMySql : RepositorioBase ,IRepositorio<Inmueble>
     {
         public RepositorioInmuebleMySql(IConfiguration configuration) : base(configuration)
         {

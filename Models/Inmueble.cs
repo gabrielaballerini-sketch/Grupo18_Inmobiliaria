@@ -40,6 +40,19 @@ namespace Grupo18_Inmobiliaria.Models
         [ValidateNever]
         public Propietario Propietario { get; set; } = new Propietario();
 
+        [Required]
+        public decimal PorcentajeReserva{get;set;}
+        [Required]
+        public string Imagen {get;set;}="";
+        
+        public IFormFile? ImagenPortada{get;set;}
+
+        public IList<Imagen> ListaImagenes {get;set;}=new List<Imagen>();
+
+
+
+
+
         public bool Estado { get; set; } = true;
         public List<string> ListaReservas { get; set; } = new List<string>();
 
