@@ -26,7 +26,7 @@ builder.Services.AddScoped<IRepositorioInquilino,RepositorioInquilinoMySql>();
 builder.Services.AddScoped< IRepositorio<TipoInmueble>,RepositorioTipoInmuebleMySql>();
 builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmuebleMySql>();
 builder.Services.AddScoped<IRepositorioReserva, RepositorioReservaMySql>();
-
+builder.Services.AddScoped<IRepositorioPago, RepositorioPagoMySql>();
 
 
 

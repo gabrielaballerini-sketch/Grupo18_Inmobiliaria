@@ -1,0 +1,79 @@
+@model IEnumerable<Grupo18_Inmobiliaria.Models.Pago>
+
+@{
+    var reserva = ViewBag.Reserva as Grupo18_Inmobiliaria.Models.Reserva;
+    ViewData["Title"] = $"Pagos de la Reserva #{reserva?.IdReserva}";
+    
+    // Calculamos el total abonado considerando solo los pagos activos
+    decimal totalPagado = Model.Where(p => p.Estado).Sum(p => p.Importe);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Pagos de la Reserva #@reserva?.IdReserva</h1>
+    <div>
+        <a asp-action="Crear" asp-route-id="@reserva?.IdReserva" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Registrar Pago
+        </a>
+        <a asp-controller="Reserva" asp-action="Index" class="btn btn-secondary">Volver a Reservas</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Resumen de Pagos</h5>
+        <p class="card-text mb-0"><strong>Total Acumulado (Activos):</strong> @totalPagado.ToString("C")</p>
+    </div>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Nº Pago</th>
+            <th>Fecha</th>
+            <th>Importe</th>
+            <th>Concepto</th>
+            <th>Medio de Pago</th>
+            <th>Creado Por</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr class="@(!item.Estado ? "table-danger text-muted" : "")">
+                <td>@item.IdPago</td>
+                <td>@item.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@item.Importe.ToString("C")</td>
+                <td>@item.ConceptoPago</td>
+                <td>@item.MedioPago</td>
+                <td>@(item.UsuarioCreador?.UserName ?? "-")</td>
+                <td>
+                    @if (item.Estado)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger" title="Anulado por @item.UsuarioAnulador?.UserName">Anulado</span>
+                    }
+                </td>
+                <td>
+                    @if (item.Estado)
+                    {
+                        <form asp-action="Anular" method="post" style="display:inline;" onsubmit="return confirm('¿Seguro que querés anular este pago?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="idPago" value="@item.IdPago" />
+                            <input type="hidden" name="idReserva" value="@item.IdReserva" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Anular</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <small class="text-muted">Anulado por @item.UsuarioAnulador?.UserName</small>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
