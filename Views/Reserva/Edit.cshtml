@@ -1,0 +1,200 @@
+@model Grupo18_Inmobiliaria.Models.Reserva
+
+@{
+    ViewData["Title"] = "Editar Reserva";
+    string fechaMinima = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+}
+
+<div class="container mt-4">
+
+    <h1>Editar Reserva</h1>
+
+    <hr />
+
+    <form asp-action="Edit" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <!-- Campo oculto para mantener el ID de la reserva que estamos editando -->
+        <input type="hidden" asp-for="IdReserva" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <!-- 1. INQUILINO CON BÚSQUEDA DINÁMICA -->
+        <div class="mb-3 position-relative">
+            <label class="form-label">Inquilino</label>
+
+            <!-- Campo oculto que guarda el ID real para el envío -->
+            <input type="hidden" asp-for="IdInquilino" id="IdInquilinoHidden" />
+
+            <!-- Input donde se busca y se muestra el nombre actual del inquilino -->
+            <input type="text" 
+                   id="buscadorInquilino" 
+                   class="form-control" 
+                   placeholder="Escriba el nombre, apellido o DNI..." 
+                   autocomplete="off" 
+                   value="@(Model?.Inquilino != null ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido} - DNI: {Model.Inquilino.Dni}" : "")" />
+
+            <ul id="listaSugerencias" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;">
+            </ul>
+
+            <span asp-validation-for="IdInquilino" class="text-danger"></span>
+        </div>
+
+
+        <!-- 2. INMUEBLE CON BÚSQUEDA DINÁMICA -->
+        <div class="mb-3 position-relative">
+            <label class="form-label">Inmueble</label>
+
+            <!-- Campo oculto que guarda el ID real del inmueble -->
+            <input type="hidden" asp-for="IdInmueble" id="IdInmuebleHidden" />
+
+            <!-- Input donde se busca y se muestra la dirección actual del inmueble -->
+            <input type="text" 
+                   id="buscadorInmueble" 
+                   class="form-control" 
+                   placeholder="Escriba la dirección del inmueble..." 
+                   autocomplete="off" 
+                   value="@(Model?.Inmueble != null ? Model.Inmueble.Direccion : "")" />
+
+            <ul id="listaSugerenciasInmueble" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;">
+            </ul>
+
+            <span asp-validation-for="IdInmueble" class="text-danger"></span>
+        </div>
+
+
+        <!-- MONTO DIARIO -->
+        <div class="mb-3">
+            <label asp-for="MontoDiario" class="form-label">Monto Diario</label>
+            <input asp-for="MontoDiario" id="inputMonto" type="number" step="any" min="0" class="form-control" />
+            <span asp-validation-for="MontoDiario" class="text-danger"></span>
+        </div>
+
+
+        <!-- FECHA INICIO -->
+        <div class="mb-3">
+            <label asp-for="FechaInicio" class="form-label">Fecha de inicio</label>
+            <input asp-for="FechaInicio" id="FechaInicio" type="datetime-local" class="form-control" />
+            <span asp-validation-for="FechaInicio" class="text-danger"></span>
+        </div>
+
+
+        <!-- FECHA FIN -->
+        <div class="mb-3">
+            <label asp-for="FechaFin" class="form-label">Fecha de finalización</label>
+            <input asp-for="FechaFin" id="FechaFin" type="datetime-local" class="form-control" />
+            <span asp-validation-for="FechaFin" class="text-danger"></span>
+        </div>
+
+
+        <!-- BOTONES -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        // 1. BÚSQUEDA DINÁMICA DE INQUILINOS
+        const inputBuscadorInquilino = document.getElementById("buscadorInquilino");
+        const inputHiddenInquilino = document.getElementById("IdInquilinoHidden");
+        const listaSugerenciasInquilino = document.getElementById("listaSugerencias");
+        let timeoutInquilino;
+
+        inputBuscadorInquilino.addEventListener("input", function () {
+            clearTimeout(timeoutInquilino);
+            let term = this.value.trim();
+
+            if (term.length < 2) {
+                listaSugerenciasInquilino.style.display = "none";
+                return;
+            }
+
+            timeoutInquilino = setTimeout(() => {
+                fetch(`/Reserva/BuscarInquilinosPorNombre?term=${encodeURIComponent(term)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerenciasInquilino.innerHTML = "";
+                        if (data.length === 0) {
+                            listaSugerenciasInquilino.innerHTML = `<li class="dropdown-item text-muted">No se encontraron inquilinos</li>`;
+                        } else {
+                            data.forEach(item => {
+                                let li = document.createElement("li");
+                                li.innerHTML = `<a class="dropdown-item" href="#" data-id="${item.id}">${item.nombreCompleto}</a>`;
+                                li.querySelector("a").addEventListener("click", function (e) {
+                                    e.preventDefault();
+                                    inputHiddenInquilino.value = item.id;
+                                    inputBuscadorInquilino.value = item.nombreCompleto;
+                                    listaSugerenciasInquilino.style.display = "none";
+                                });
+                                listaSugerenciasInquilino.appendChild(li);
+                            });
+                        }
+                        listaSugerenciasInquilino.style.display = "block";
+                    })
+                    .catch(err => console.error("Error:", err));
+            }, 300);
+        });
+
+
+        // 2. BÚSQUEDA DINÁMICA DE INMUEBLES
+        const inputBuscadorInmueble = document.getElementById("buscadorInmueble");
+        const inputHiddenInmueble = document.getElementById("IdInmuebleHidden");
+        const listaSugerenciasInmueble = document.getElementById("listaSugerenciasInmueble");
+        const inputMonto = document.getElementById("inputMonto");
+        let timeoutInmueble;
+
+        inputBuscadorInmueble.addEventListener("input", function () {
+            clearTimeout(timeoutInmueble);
+            let term = this.value.trim();
+
+            if (term.length < 2) {
+                listaSugerenciasInmueble.style.display = "none";
+                return;
+            }
+
+            timeoutInmueble = setTimeout(() => {
+                fetch(`/Reserva/BuscarInmueblesPorDireccion?term=${encodeURIComponent(term)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerenciasInmueble.innerHTML = "";
+                        if (data.length === 0) {
+                            listaSugerenciasInmueble.innerHTML = `<li class="dropdown-item text-muted">No se encontraron inmuebles</li>`;
+                        } else {
+                            data.forEach(item => {
+                                let li = document.createElement("li");
+                                li.innerHTML = `<a class="dropdown-item" href="#" data-id="${item.id}" data-precio="${item.precio}">${item.direccion}</a>`;
+                                li.querySelector("a").addEventListener("click", function (e) {
+                                    e.preventDefault();
+                                    inputHiddenInmueble.value = item.id;
+                                    inputBuscadorInmueble.value = item.direccion;
+                                    inputMonto.value = item.precio; // Actualiza el monto diario automáticamente
+                                    listaSugerenciasInmueble.style.display = "none";
+                                });
+                                listaSugerenciasInmueble.appendChild(li);
+                            });
+                        }
+                        listaSugerenciasInmueble.style.display = "block";
+                    })
+                    .catch(err => console.error("Error:", err));
+            }, 300);
+        });
+
+
+        // CERRAR LISTAS AL HACER CLIC AFUERA
+        document.addEventListener("click", function (e) {
+            if (!inputBuscadorInquilino.contains(e.target) && !listaSugerenciasInquilino.contains(e.target)) {
+                listaSugerenciasInquilino.style.display = "none";
+            }
+            if (!inputBuscadorInmueble.contains(e.target) && !listaSugerenciasInmueble.contains(e.target)) {
+                listaSugerenciasInmueble.style.display = "none";
+            }
+        });
+    </script>
+}

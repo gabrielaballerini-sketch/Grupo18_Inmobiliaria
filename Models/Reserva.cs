@@ -12,10 +12,14 @@ namespace Grupo18_Inmobiliaria.Models
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public List<Pago> PagosEfectuados { get; set; } = new List<Pago>();
-        public int IdUsuario {get;set;}
+        public int IdUsuario { get; set; }
+
+        public decimal? Multa { get; set; }
+
+        public DateTime? FechaCancelacion { get; set; }
 
         public bool Estado { get; set; } = true;
-        public Usuario Usuario {get;set;}=new Usuario();
+        public Usuario Usuario { get; set; } = new Usuario();
 
     }
 }

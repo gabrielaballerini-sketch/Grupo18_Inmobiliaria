@@ -2,116 +2,146 @@
 
 @{
     ViewData["Title"] = "Dar de baja Reserva";
+    string fechaMinima = Model.FechaInicio.ToString("yyyy-MM-ddTHH:mm");
+    string fechaMaximaOriginal = Model.FechaFin.ToString("yyyy-MM-ddTHH:mm");
 }
 
 <div class="container mt-4">
-
     <h1>Dar de baja Reserva</h1>
 
-    <div class="alert alert-warning mt-3">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
-        <strong>¿Está seguro de que desea dar de baja esta reserva?</strong>
-
-        <br />
-
-        La reserva no será eliminada de la base de datos.
-        Simplemente pasará a estar inactiva.
-
+    <div class="alert alert-warning">
+        <strong>¿Está seguro de que desea dar de baja esta reserva?</strong><br />
+        Si el inquilino finaliza antes de tiempo, se calculará la multa correspondiente según los días transcurridos.
     </div>
 
+    <div class="card p-4 mb-4 shadow-sm">
+        <h4>Datos de la Reserva</h4>
+        <dl class="row mt-3">
+            <dt class="col-sm-3">Inquilino</dt>
+            <dd class="col-sm-9">@(Model.Inquilino != null ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}" :
+                                "-")</dd>
 
-    <div class="card mt-4">
+            <dt class="col-sm-3">Inmueble</dt>
+            <dd class="col-sm-9">@(Model.Inmueble != null ? Model.Inmueble.Direccion : "-")</dd>
 
-        <div class="card-header">
-            Datos de la Reserva
-        </div>
+            <dt class="col-sm-3">Monto diario</dt>
+            <dd class="col-sm-9">$<span id="montoDiario">@Model.MontoDiario</span></dd>
 
-        <div class="card-body">
+            <dt class="col-sm-3">Fecha de inicio</dt>
+            <dd class="col-sm-9" id="fechaInicio">@Model.FechaInicio.ToString("yyyy-MM-ddTHH:mm")</dd>
 
-            <dl class="row">
-
-                <dt class="col-sm-4">
-                    Id Reserva
-                </dt>
-
-                <dd class="col-sm-8">
-                    @Model.IdReserva
-                </dd>
-
-
-                <dt class="col-sm-4">
-                    Id Inquilino
-                </dt>
-
-                <dd class="col-sm-8">
-                    @Model.IdInquilino
-                </dd>
-
-
-                <dt class="col-sm-4">
-                    Id Inmueble
-                </dt>
-
-                <dd class="col-sm-8">
-                    @Model.IdInmueble
-                </dd>
-
-
-                <dt class="col-sm-4">
-                    Monto diario
-                </dt>
-
-                <dd class="col-sm-8">
-                    $@Model.MontoDiario
-                </dd>
-
-
-                <dt class="col-sm-4">
-                    Fecha inicio
-                </dt>
-
-                <dd class="col-sm-8">
-                    @Model.FechaInicio.ToString("dd/MM/yyyy HH:mm")
-                </dd>
-
-
-                <dt class="col-sm-4">
-                    Fecha fin
-                </dt>
-
-                <dd class="col-sm-8">
-                    @Model.FechaFin.ToString("dd/MM/yyyy HH:mm")
-                </dd>
-
-            </dl>
-
-        </div>
-
+            <dt class="col-sm-3">Fecha fin original</dt>
+            <dd class="col-sm-9" id="fechaFinOriginal">@Model.FechaFin.ToString("yyyy-MM-ddTHH:mm")</dd>
+        </dl>
     </div>
 
-
-    <!-- CONFIRMACIÓN -->
-
-    <form asp-action="Delete"
-          method="post"
-          class="mt-4">
-
+    <form asp-action="Delete" method="post">
         @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="IdReserva" />
 
-        <input type="hidden"
-               name="id"
-               value="@Model.IdReserva" />
+        <!-- FECHA DE CANCELACIÓN EFECTIVA -->
+        <div class="mb-3 row">
+            <label for="fechaCancelacion" class="col-sm-3 col-form-label fw-bold">Fecha de Cancelación:</label>
+            <div class="col-sm-5">
+                <input type="datetime-local" id="fechaCancelacion" name="fechaCancelacion" class="form-control"
+                    value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" min="@fechaMinima" max="@fechaMaximaOriginal" />
+                <small class="text-muted">Modifique la fecha para ver el cálculo de la multa en tiempo real.</small>
+            </div>
+        </div>
 
-        <button type="submit"
-                class="btn btn-danger">
-            Sí, dar de baja
-        </button>
+        <!-- CARTEL / ALERTA DINÁMICA DE MULTA -->
+        <div id="seccionMulta" class="alert alert-info d-none mb-3">
+            <h5 class="alert-heading">Cálculo estimado de multa:</h5>
+            <p class="mb-0 fs-5 fw-bold text-danger" id="textoMulta">$0.00</p>
+            <hr>
+            <p class="mb-0 small" id="detalleMulta"></p>
+        </div>
 
-        <a asp-action="Index"
-           class="btn btn-secondary">
-            Cancelar
-        </a>
+        <!-- CHECKBOX DE PAGO DE MULTA -->
+        <div class="mb-3 row" id="contenedorCheckbox" style="display: none;">
+            <div class="col-sm-9 offset-sm-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="pagaMultaNow" name="pagaMultaNow"
+                        value="true" />
+                    <label class="form-check-label fw-bold text-danger" for="pagaMultaNow">
+                        El inquilino abona el monto de la multa en este momento
+                    </label>
+                </div>
+            </div>
+        </div>
 
+        <div class="mt-4">
+            <button type="submit" class="btn btn-danger">Confirmar Baja</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </div>
     </form>
-
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputFechaCancelacion = document.getElementById("fechaCancelacion");
+            const seccionMulta = document.getElementById("seccionMulta");
+            const textoMulta = document.getElementById("textoMulta");
+            const detalleMulta = document.getElementById("detalleMulta");
+            const contenedorCheckbox = document.getElementById("contenedorCheckbox");
+
+            // Parseamos los datos de C# a JavaScript
+            const montoDiario = parseFloat(document.getElementById("montoDiario").innerText.replace(',', '.'));
+            const fechaInicio = new Date(document.getElementById("fechaInicio").innerText);
+            const fechaFinOriginal = new Date(document.getElementById("fechaFinOriginal").innerText);
+
+            function calcularMultaEnVivo() {
+                const fechaCancelacionVal = new Date(inputFechaCancelacion.value);
+
+                // Si la fecha de cancelación es menor a la del fin original
+                if (fechaCancelacionVal < fechaFinOriginal) {
+                    const duracionTotalMs = fechaFinOriginal - fechaInicio;
+                    const transcurridoMs = fechaCancelacionVal - fechaInicio;
+                    const restantesMs = fechaFinOriginal - fechaCancelacionVal;
+
+                    const duracionTotalDias = duracionTotalMs / (1000 * 60 * 60 * 24);
+                    let tiempoTranscurridoDias = transcurridoMs / (1000 * 60 * 60 * 24);
+                    if (tiempoTranscurridoDias < 0) tiempoTranscurridoDias = 0;
+
+                    const diasRestantes = restantesMs / (1000 * 60 * 60 * 24);
+
+                    const alquilerRestante = diasRestantes * montoDiario;
+                    let multaCalculada = 0;
+                    let reglaAplicada = "";
+
+                    if (tiempoTranscurridoDias < (duracionTotalDias / 2)) {
+                        multaCalculada = alquilerRestante * 0.50;
+                        reglaAplicada = "Menos de la mitad del tiempo transcurrido (Corresponde el 50% del alquiler restante).";
+                    } else {
+                        multaCalculada = alquilerRestante * 0.25;
+                        reglaAplicada = "Más de la mitad del tiempo transcurrido (Corresponde el 25% del alquiler restante).";
+                    }
+
+                    if (multaCalculada > 0) {
+                        textoMulta.innerText = `$${multaCalculada.toFixed(2)}`;
+                        detalleMulta.innerText = `Días restantes: ${diasRestantes.toFixed(1)} días. Regla: ${reglaAplicada}`;
+                        seccionMulta.classList.remove("d-none");
+                        contenedorCheckbox.style.display = "flex"; // Muestra el checkbox si hay multa
+                    } else {
+                        seccionMulta.classList.add("d-none");
+                        contenedorCheckbox.style.display = "none";
+                    }
+                } else {
+                    // Si la fecha elegida es igual o mayor a la original, no hay multa anticipada
+                    seccionMulta.classList.add("d-none");
+                    contenedorCheckbox.style.display = "none";
+                }
+            }
+
+            // Ejecutar al cargar por si viene con valor por defecto y al cambiar el input
+            calcularMultaEnVivo();
+            inputFechaCancelacion.addEventListener("input", calcularMultaEnVivo);
+        });
+    </script>
+}

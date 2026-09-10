@@ -174,49 +174,19 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
-// PARA VUE
-// GET: Propietario/Obtener/5
-[HttpGet]
-public IActionResult Obtener(int id)
-{
-    var propietario = repo.ObtenerPorId(id);
-    if (propietario == null) return NotFound();
-    return Json(propietario);
-}
+        // GET: Propietario/Obtener/5
 
-[HttpGet]
-public IActionResult Details(int id)
-{
-    var propietario = repo.ObtenerPorId(id); 
-    if (propietario == null)
-    {
-        return NotFound();
-    }
-    return View(propietario);
-}
-
-
-[HttpGet]
-public IActionResult ObtenerJson(int id)
-{
-    var p = repo.ObtenerPorId(id);
-    if (p == null) return NotFound();
-
-    return Json(new {
-        idPropietario = p.IdPropietario,
-        nombre = p.Nombre,
-        apellido = p.Apellido,
-        dni = p.Dni,
-        telefono = p.Telefono,
-        email = p.Email
-    });
-}
-
-
-
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var propietario = repo.ObtenerPorId(id);
+            if (propietario == null)
+            {
+                return NotFound();
+            }
+            return View(propietario);
+        }
 
     }
-
-
 
 }

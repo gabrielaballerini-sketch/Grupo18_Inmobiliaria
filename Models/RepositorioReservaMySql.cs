@@ -111,37 +111,37 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-public int Modificacion(Reserva reserva)
-{
-    int res = -1;
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = @"UPDATE reservas 
-                       SET FechaDesde = @FechaDesde, 
-                           FechaHasta = @FechaHasta, 
+        public int Modificacion(Reserva reserva)
+        {
+            int res = -1;
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"UPDATE reservas 
+                       SET FechaInicio = @FechaInicio, 
+                           FechaFin = @FechaFin, 
                            IdInmueble = @IdInmueble, 
                            IdInquilino = @IdInquilino 
                        WHERE IdReserva = @IdReserva;";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.CommandType = CommandType.Text;
-            command.Parameters.AddWithValue("@FechaDesde", reserva.FechaInicio);
-            command.Parameters.AddWithValue("@FechaHasta", reserva.FechaFin);
-            command.Parameters.AddWithValue("@IdInmueble", reserva.IdInmueble);
-            command.Parameters.AddWithValue("@IdInquilino", reserva.IdInquilino);
-            command.Parameters.AddWithValue("@IdReserva", reserva.IdReserva);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@FechaInicio", reserva.FechaInicio);
+                    command.Parameters.AddWithValue("@FechaFin", reserva.FechaFin);
+                    command.Parameters.AddWithValue("@IdInmueble", reserva.IdInmueble);
+                    command.Parameters.AddWithValue("@IdInquilino", reserva.IdInquilino);
+                    command.Parameters.AddWithValue("@IdReserva", reserva.IdReserva);
 
-            connection.Open();
-            res = command.ExecuteNonQuery();
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                }
+            }
+            return res;
         }
-    }
-    return res;
-}
 
 
 
-      
+
 
         // REACTIVAR
 
@@ -182,7 +182,7 @@ public int Modificacion(Reserva reserva)
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = $"""
-                   SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                   SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
                     r.IdInquilino, 
                     iq.Nombre AS InqNombre, 
                     iq.Apellido AS InqApellido, 
@@ -245,20 +245,20 @@ public int Modificacion(Reserva reserva)
                 Inquilino = new Inquilino
                 {
                     IdInquilino = reader.GetInt32(reader.GetOrdinal("IdInquilino")),
-            Nombre = reader.GetString(reader.GetOrdinal("InqNombre")),
-            Apellido = reader.GetString(reader.GetOrdinal("InqApellido")),
-            Dni = reader.IsDBNull(reader.GetOrdinal("InqDni")) ? "" : reader.GetString(reader.GetOrdinal("InqDni")),
-            Telefono = reader.IsDBNull(reader.GetOrdinal("InqTelefono")) ? "" : reader.GetString(reader.GetOrdinal("InqTelefono")),
-            Email = reader.IsDBNull(reader.GetOrdinal("InqEmail")) ? "" : reader.GetString(reader.GetOrdinal("InqEmail"))
+                    Nombre = reader.GetString(reader.GetOrdinal("InqNombre")),
+                    Apellido = reader.GetString(reader.GetOrdinal("InqApellido")),
+                    Dni = reader.IsDBNull(reader.GetOrdinal("InqDni")) ? "" : reader.GetString(reader.GetOrdinal("InqDni")),
+                    Telefono = reader.IsDBNull(reader.GetOrdinal("InqTelefono")) ? "" : reader.GetString(reader.GetOrdinal("InqTelefono")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("InqEmail")) ? "" : reader.GetString(reader.GetOrdinal("InqEmail"))
                 },
 
 
                 Inmueble = new Inmueble
                 {
-                   IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
-                   Direccion = reader.GetString(reader.GetOrdinal("InmDireccion")),
-                   Capacidad = reader.GetInt32(reader.GetOrdinal("InmCapacidad")),
-                   PrecioAlquiler = reader.GetDecimal(reader.GetOrdinal("InmPrecioAlquiler"))
+                    IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
+                    Direccion = reader.GetString(reader.GetOrdinal("InmDireccion")),
+                    Capacidad = reader.GetInt32(reader.GetOrdinal("InmCapacidad")),
+                    PrecioAlquiler = reader.GetDecimal(reader.GetOrdinal("InmPrecioAlquiler"))
                 }
             };
 
@@ -279,7 +279,7 @@ public int Modificacion(Reserva reserva)
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = $"""
-                    SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
                     r.IdInquilino, 
                     iq.Nombre AS InqNombre, 
                     iq.Apellido AS InqApellido, 
@@ -331,7 +331,7 @@ public int Modificacion(Reserva reserva)
             using (var connection = new MySqlConnection(connectionString))
             {
                 string query = """
-                    SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
                     r.IdInquilino, 
                     iq.Nombre AS InqNombre, 
                     iq.Apellido AS InqApellido, 
