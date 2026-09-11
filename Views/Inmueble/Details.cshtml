@@ -4,6 +4,9 @@
     ViewData["Title"] = "Detalle del Inmueble";
 }
 
+<!-- CSS de Leaflet para el Mapa -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 <div class="container mt-4" id="appInmueble">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Detalle del Inmueble #@Model.IdInmueble</h2>
@@ -42,7 +45,7 @@
 
                         <dt class="col-sm-4">Tipo Inmueble</dt>
                         <dd class="col-sm-8">
-                            {{ inmueble.tipoInmueble ? inmueble.tipoInmueble.descripcion : 'N/A' }}
+                            {{ inmueble.tipoInmueble ? (inmueble.tipoInmueble.descripcion || inmueble.tipoInmueble.nombre) : 'N/A' }}
                         </dd>
 
                         <dt class="col-sm-4">Capacidad</dt>
@@ -67,9 +70,10 @@
             </div>
         </div>
 
-        <!-- Columna Derecha: Datos del Propietario -->
+        <!-- Columna Derecha: Datos del Propietario y Mapa -->
         <div class="col-md-5">
-            <div class="card shadow-sm">
+            <!-- Datos del Propietario -->
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-info text-white">
                     <h5 class="card-title mb-0"><i class="bi bi-person-badge"></i> Propietario</h5>
                 </div>
@@ -95,15 +99,43 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Mapa de Ubicación -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-geo-alt"></i> Ubicación</h5>
+                </div>
+                <div class="card-body p-2">
+                    <div id="mapa" style="height: 220px; border-radius: 6px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Imágenes abajo -->
+        <div class="col-12 mt-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-images"></i> Imágenes</h5>
+                </div>
+                <div class="card-body">
+                    <div v-if="inmueble.imagenUrl" class="d-inline-block">
+                        <img :src="inmueble.imagenUrl" class="img-fluid rounded border shadow-sm" style="max-height: 280px; object-fit: cover;" alt="Imagen del Inmueble" />
+                    </div>
+                    <div v-else class="alert alert-light text-muted mb-0">
+                        No hay imágenes disponibles para este inmueble.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const { createApp } = Vue;
+        const { createApp, nextTick } = Vue;
 
         createApp({
             data() {
@@ -111,7 +143,8 @@
                     idInmueble: @Model.IdInmueble,
                     inmueble: null,
                     cargando: true,
-                    error: null
+                    error: null,
+                    mapa: null
                 }
             },
             mounted() {
@@ -127,12 +160,33 @@
                         .then(data => {
                             this.inmueble = data;
                             this.cargando = false;
+
+                            // Esperamos a que Vue renderice el DOM para inicializar el mapa en el div #mapa
+                            nextTick(() => {
+                                this.inicializarMapa();
+                            });
                         })
                         .catch(err => {
                             console.error('Error:', err);
                             this.error = "No se pudieron cargar los datos del inmueble.";
                             this.cargando = false;
                         });
+                },
+                inicializarMapa() {
+                    if (this.inmueble && this.inmueble.latitud && this.inmueble.longitud) {
+                        const lat = parseFloat(this.inmueble.latitud);
+                        const lng = parseFloat(this.inmueble.longitud);
+
+                        this.mapa = L.map('mapa').setView([lat, lng], 15);
+
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(this.mapa);
+
+                        L.marker([lat, lng]).addTo(this.mapa)
+                            .bindPopup(this.inmueble.direccion)
+                            .openPopup();
+                    }
                 }
             }
         }).mount('#appInmueble');

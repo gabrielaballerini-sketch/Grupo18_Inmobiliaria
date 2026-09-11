@@ -270,9 +270,83 @@ public IActionResult ObtenerJson(int id)
     });
 }
 
+[HttpGet]
+public IActionResult Disponibles(DateTime fechaInicio, DateTime fechaFin)
+{
+    // Obtener inmuebles que NO están reservados en ese rango de fechas
+    var inmuebles = repo_Inmueble.ObtenerDisponiblesEntreFechas(fechaInicio, fechaFin);
+    
+    // Retornamos JSON para consumir desde el fetch de Vue
+    return Json(inmuebles);
+}
+
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment, [FromServices] IRepositorioImagen repositorioImagen)
+{
+
+// Limpiamos del ModelState los objetos de navegación que vienen nulos en el POST
+    ModelState.Remove("Propietario");
+    ModelState.Remove("TipoInmueble");
+      ModelState.Remove("Imagenes");
 
 
 
+
+    if (!ModelState.IsValid)
+    {
+        return BadRequest("Revisá los datos ingresados en el formulario.");
+    }
+
+    try
+    {
+        // 1. Guardar el inmueble en la BD y obtener su ID recién generado
+        int nuevoId = repo_Inmueble.Alta(inmueble); 
+
+        // 2. Si se adjuntaron fotos, crear carpeta y guardarlas en wwwroot
+        if (imagenes != null && imagenes.Count > 0)
+        {
+            string wwwPath = environment.WebRootPath;
+            string path = Path.Combine(wwwPath, "Uploads", "Inmuebles", nuevoId.ToString());
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            foreach (var file in imagenes)
+            {
+                if (file.Length > 0)
+                {
+                    var extension = Path.GetExtension(file.FileName);
+                    var nombreArchivo = $"{Guid.NewGuid()}{extension}";
+                    var rutaArchivo = Path.Combine(path, nombreArchivo);
+
+                    using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Guardar en la tabla de imágenes asociada al inmueble
+                    Imagen imagen = new Imagen
+                    {
+                        IdInmueble = nuevoId,
+                        Url = $"/Uploads/Inmuebles/{nuevoId}/{nombreArchivo}"
+                    };
+
+                    repositorioImagen.Alta(imagen);
+                }
+            }
+        }
+
+        return Ok();
+    }
+    catch (Exception ex)
+    {
+        return BadRequest("Ocurrió un error en el servidor: " + ex.Message);
+    }
+}
 
 
 

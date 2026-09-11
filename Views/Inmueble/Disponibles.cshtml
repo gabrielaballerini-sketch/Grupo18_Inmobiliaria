@@ -1,0 +1,135 @@
+@{
+    ViewData["Title"] = "Inmuebles Disponibles";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    #mapaDisponibles {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+    }
+    .price-tag {
+        background: #0d6efd;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+</style>
+
+<div id="appBuscarDisponibles" class="container mt-3">
+    <h2 class="mb-4">Consultar Inmuebles Disponibles</h2>
+
+    <!-- FILTRO DE FECHAS -->
+    <div class="card p-3 shadow-sm mb-4">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold">Fecha de Check-in</label>
+                <input type="date" class="form-control" v-model="fechaInicio" @@change="buscar" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label font-weight-bold">Fecha de Check-out</label>
+                <input type="date" class="form-control" v-model="fechaFin" @@change="buscar" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary w-100" @@click="buscar" :disabled="!fechasValidas">
+                    <i class="bi bi-search"></i> Buscar Disponibilidad
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO: MAPA Y LISTA -->
+    <div class="row">
+        <div class="col-md-7">
+            <div id="mapaDisponibles" class="shadow-sm"></div>
+        </div>
+        <div class="col-md-5" style="max-height: 500px; overflow-y: auto;">
+            <div v-if="inmuebles.length === 0" class="alert alert-info">
+                {{ mensaje }}
+            </div>
+            
+            <div v-for="item in inmuebles" :key="item.idInmueble" class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.direccion }}</h5>
+                    <p class="card-text mb-1"><strong>Capacidad:</strong> {{ item.capacidad }} personas</p>
+                    <p class="card-text mb-2"><strong>Precio por día:</strong> ${{ item.precioAlquiler }}</p>
+                    
+                    <!-- Botón opcional para redirigir directamente a crear la reserva con ese inmueble -->
+                    <a :href="'/Reserva/Crear?idInmueble=' + item.idInmueble + '&desde=' + fechaInicio + '&hasta=' + fechaFin" 
+                       class="btn btn-outline-success btn-sm w-100">
+                        Reservar este Inmueble
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                fechaInicio: '',
+                fechaFin: '',
+                inmuebles: [],
+                mensaje: 'Seleccione un rango de fechas para consultar.',
+                map: null,
+                markersGroup: null
+            }
+        },
+        computed: {
+            fechasValidas() {
+                return this.fechaInicio && this.fechaFin && this.fechaInicio < this.fechaFin;
+            }
+        },
+        mounted() {
+            this.map = L.map('mapaDisponibles').setView([-33.2950, -66.3356], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+            this.markersGroup = L.layerGroup().addTo(this.map);
+        },
+        methods: {
+            async buscar() {
+                if (!this.fechasValidas) return;
+
+                this.mensaje = 'Cargando...';
+                this.markersGroup.clearLayers();
+
+                const res = await fetch(`/Inmuebles/ObtenerDisponibles?fechaInicio=${this.fechaInicio}&fechaFin=${this.fechaFin}`);
+                if (res.ok) {
+                    this.inmuebles = await res.json();
+                    this.mensaje = this.inmuebles.length === 0 ? 'No hay propiedades libres en esas fechas.' : '';
+                    this.dibujarPines();
+                }
+            },
+            dibujarPines() {
+                const bounds = [];
+                this.inmuebles.forEach(inm => {
+                    if (inm.latitud && inm.longitud) {
+                        const coords = [inm.latitud, inm.longitud];
+                        bounds.push(coords);
+
+                        const icon = L.divIcon({
+                            className: 'custom-pin',
+                            html: `<div class="price-tag">$${inm.precioAlquiler}</div>`
+                        });
+
+                        L.marker(coords, { icon }).addTo(this.markersGroup)
+                         .bindPopup(`<b>${inm.direccion}</b><br>$${inm.precioAlquiler} / día`);
+                    }
+                });
+
+                if (bounds.length > 0) {
+                    this.map.fitBounds(bounds, { padding: [30, 30] });
+                }
+            }
+        }
+    }).mount('#appBuscarDisponibles');
+</script>

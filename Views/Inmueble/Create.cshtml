@@ -4,7 +4,6 @@
     ViewData["Title"] = "Nuevo Inmueble";
 }
 
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
 
 <div class="container mt-4 mb-5">
@@ -15,7 +14,7 @@
                 <div class="card-body p-4">
                     <h2 class="card-title mb-4">Crear Inmueble</h2>
 
-                    <form asp-action="Create">
+                    <form id="formCrearInmueble" enctype="multipart/form-data">
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
                         <div class="form-group mb-3">
@@ -43,29 +42,44 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 form-group mb-3">
+                            <div class="col-md-4 form-group mb-3">
                                 <label asp-for="Capacidad" class="control-label fw-bold">Capacidad</label>
                                 <input asp-for="Capacidad" type="number" class="form-control" placeholder="Ej: 4" />
                                 <span asp-validation-for="Capacidad" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-6 form-group mb-3">
-                                <label asp-for="PrecioAlquiler" class="control-label fw-bold">Precio de Alquiler
-                                    ($)</label>
-                                <input asp-for="PrecioAlquiler" type="number" step="0.01" class="form-control"
-                                    placeholder="Ej: 150000" />
+                            <div class="col-md-4 form-group mb-3">
+                                <label asp-for="PrecioAlquiler" class="control-label fw-bold">Precio ($)</label>
+                                <input asp-for="PrecioAlquiler" type="number" step="0.01" class="form-control" placeholder="Ej: 150000" />
                                 <span asp-validation-for="PrecioAlquiler" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group mb-3">
+                                <label asp-for="PorcentajeReserva" class="control-label fw-bold">Reserva (%)</label>
+                                <input asp-for="PorcentajeReserva" type="number" step="0.01" class="form-control" placeholder="Ej: 10" />
+                                <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <!-- Contenedor del Mapa interactivo -->
+                        <!-- Sección de Selección y Previsualización de Imágenes -->
+                        <div class="card p-3 mb-3 bg-light border">
+                            <h5 class="fw-bold mb-2">Imágenes del Inmueble</h5>
+                            <div class="form-group mb-3">
+                                <label for="inputImagenes" class="form-label text-muted small">Seleccioná una o varias fotos</label>
+                                <input type="file" id="inputImagenes" name="imagenes" class="form-control" multiple accept="image/*" />
+                            </div>
+
+                            <label class="form-label fw-bold small text-muted">Previsualización:</label>
+                            <div id="contenedorPrevisualizacion" class="d-flex flex-wrap gap-2 border p-2 bg-white rounded" style="min-height: 90px;">
+                                <p class="text-muted small m-0 p-2" id="msgSinFotos">No hay imágenes seleccionadas.</p>
+                            </div>
+                        </div>
+
+                        <!-- Mapa interactivo Leaflet -->
                         <div class="form-group mb-3">
                             <label class="control-label fw-bold">Ubicación en el mapa</label>
-                            <p class="text-muted small mb-1">Hacé clic sobre el mapa para ubicar las coordenadas del
-                                inmueble.</p>
-                            <div id="mapa"
-                                style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #ced4da;">
-                            </div>
+                            <p class="text-muted small mb-1">Hacé clic sobre el mapa para fijar las coordenadas.</p>
+                            <div id="mapa" style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #ced4da;"></div>
                         </div>
 
                         <div class="row">
@@ -82,7 +96,7 @@
                         </div>
 
                         <div class="form-group mt-4 d-flex gap-2">
-                            <input type="submit" value="Guardar" class="btn btn-primary px-4" />
+                            <button type="submit" class="btn btn-primary px-4">Guardar Inmueble</button>
                             <a asp-action="Index" class="btn btn-secondary px-4">Volver</a>
                         </div>
                     </form>
@@ -93,21 +107,17 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 
-    <!-- Script JS de Leaflet -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // 1. Configuración del Mapa Leaflet
             const centroDefault = [-33.295000, -66.335000];
-
             const inputLat = document.getElementById('Latitud');
             const inputLng = document.getElementById('Longitud');
 
             const map = L.map('mapa').setView(centroDefault, 13);
-
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
@@ -136,6 +146,61 @@
             map.on('click', function (e) {
                 ubicarMarcador(e.latlng.lat, e.latlng.lng);
             });
+
+            // 2. Previsualización de imágenes local mediante FileReader
+            const inputImagenes = document.getElementById('inputImagenes');
+            const previewContainer = document.getElementById('contenedorPrevisualizacion');
+            const msgSinFotos = document.getElementById('msgSinFotos');
+
+            inputImagenes.addEventListener('change', function () {
+                previewContainer.innerHTML = '';
+                if (this.files && this.files.length > 0) {
+                    Array.from(this.files).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const imgDiv = document.createElement('div');
+                            imgDiv.className = 'position-relative';
+                            imgDiv.style.width = '80px';
+                            imgDiv.style.height = '80px';
+                            imgDiv.innerHTML = `<img src="${e.target.result}" class="img-thumbnail w-100 h-100" style="object-fit: cover; border-radius: 6px;" />`;
+                            previewContainer.appendChild(imgDiv);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    previewContainer.appendChild(msgSinFotos);
+                }
+            });
+
+  // 3. Envío del Formulario vía AJAX (Fetch API)
+const form = document.getElementById('formCrearInmueble');
+form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    // Validar con jQuery Validate si está cargado
+    if (window.jQuery && $(form).data('validator')) {
+        if (!$(form).valid()) return;
+    }
+
+    const formData = new FormData(form);
+
+    try {
+        // Corrección de la URL al controlador en singular: /Inmueble/CreateAjax
+        const response = await fetch('/Inmueble/CreateAjax', {
+            method: 'POST',
+            body: formData
         });
+
+        if (response.ok) {
+            window.location.href = '/Inmueble/Index';
+        } else {
+            const errorText = await response.text();
+            alert("Error al guardar: " + errorText);
+        }
+    } catch (err) {
+        console.error("Error en la petición Ajax:", err);
+        alert("Ocurrió un error al intentar enviar los datos.");
+    }
+});
     </script>
 }

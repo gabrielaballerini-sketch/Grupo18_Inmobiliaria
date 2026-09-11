@@ -391,9 +391,59 @@ namespace Grupo18_Inmobiliaria.Models
 
 
 
+public IList<Inmueble> ObtenerDisponiblesEntreFechas(DateTime fechaInicio, DateTime fechaFin)
+{
+    var lista = new List<Inmueble>();
 
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"
+            SELECT 
+                i.IdInmueble, 
+                i.Direccion, 
+                i.Capacidad, 
+                i.Latitud, 
+                i.Longitud, 
+                i.PrecioAlquiler, 
+                i.IdPropietario, 
+                i.IdTipoInmueble, 
+                i.Estado, 
+                i.PorcentajeReserva, 
+                i.ImagenUrl,
+                t.Nombre AS TipoNombre,
+                p.Nombre AS PropNombre, 
+                p.Apellido AS PropApellido
+            FROM inmuebles i
+            INNER JOIN tiposinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
+            INNER JOIN propietarios p ON i.IdPropietario = p.IdPropietario
+            WHERE i.Estado = 1
+            AND i.IdInmueble NOT IN (
+                SELECT r.IdInmueble 
+                FROM reservas r 
+                WHERE r.Estado = 1 
+                AND r.FechaInicio < @FechaFin 
+                AND r.FechaFin > @FechaInicio
+            );";
 
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@FechaInicio", fechaInicio);
+            command.Parameters.AddWithValue("@FechaFin", fechaFin);
 
+            connection.Open();
+
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    lista.Add(MapearInmueble(reader));
+                }
+            }
+        }
+    }
+
+    return lista;
+}
 
 
 

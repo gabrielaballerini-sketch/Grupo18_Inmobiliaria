@@ -28,6 +28,7 @@
 
                 <thead class="table-dark">
                     <tr>
+                        <th style="width: 90px;">Imagen</th>
                         <th>Dirección</th>
                         <th>Capacidad</th>
                         <th>Precio Alquiler</th>
@@ -41,6 +42,16 @@
                     @foreach (var item in Model)
                     {
                         <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.ImagenUrl))
+                                {
+                                    <img src="@item.ImagenUrl" class="img-thumbnail" style="width: 70px; height: 50px; object-fit: cover;" alt="Inmueble" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Sin imagen</span>
+                                }
+                            </td>
                             <td>@item.Direccion</td>
                             <td>@item.Capacidad pers.</td>
                             <td>$@item.PrecioAlquiler</td>
@@ -50,23 +61,21 @@
                             <td class="text-center">
                                 <a asp-action="Edit"
                                    asp-route-id="@item.IdInmueble"
-                                   class="btn btn-warning btn-sm">
+                                   class="btn btn-warning btn-sm" title="Editar">
                                      <i class="bi bi-pencil-square"></i>
                                 </a>
 
                                 <a asp-action="Delete"
                                    asp-route-id="@item.IdInmueble"
-                                   class="btn btn-danger btn-sm">
+                                   class="btn btn-danger btn-sm" title="Eliminar">
                                       <i class="bi bi-trash"></i>
-
-
-                                 <a asp-action="Details" asp-route-id="@item.IdInmueble" class="btn btn-info btn-sm text-white">
-                                 <i class="bi bi-eye"></i>
-                                 </a> 
-
-
-
                                 </a>
+
+                                <a asp-action="Details" 
+                                   asp-route-id="@item.IdInmueble" 
+                                   class="btn btn-info btn-sm text-white" title="Ver Detalles">
+                                     <i class="bi bi-eye"></i>
+                                </a> 
                             </td>
                         </tr>
                     }

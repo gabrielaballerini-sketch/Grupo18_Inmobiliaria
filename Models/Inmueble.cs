@@ -45,8 +45,10 @@ namespace Grupo18_Inmobiliaria.Models
         [Required]
         public string ImagenUrl {get;set;}="";
         
+         [ValidateNever]
         public IFormFile? ImagenPortada{get;set;}
 
+         [ValidateNever]
         public IList<Imagen> ListaImagenes {get;set;}=new List<Imagen>();
 
 

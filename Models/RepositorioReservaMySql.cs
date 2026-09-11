@@ -183,6 +183,7 @@ namespace Grupo18_Inmobiliaria.Models
             {
                 string query = $"""
                    SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    r.Multa, r.FechaCancelacion,
                     r.IdInquilino, 
                     iq.Nombre AS InqNombre, 
                     iq.Apellido AS InqApellido, 
@@ -242,6 +243,15 @@ namespace Grupo18_Inmobiliaria.Models
                 IdUsuario = reader.GetInt32(reader.GetOrdinal("IdUsuario")),
 
 
+                Multa = reader.IsDBNull(reader.GetOrdinal("Multa")) 
+                ? null 
+                : reader.GetDecimal(reader.GetOrdinal("Multa")),
+                
+                 FechaCancelacion = reader.IsDBNull(reader.GetOrdinal("FechaCancelacion")) 
+                          ? null 
+                          : reader.GetDateTime(reader.GetOrdinal("FechaCancelacion")),
+
+
                 Inquilino = new Inquilino
                 {
                     IdInquilino = reader.GetInt32(reader.GetOrdinal("IdInquilino")),
@@ -280,6 +290,7 @@ namespace Grupo18_Inmobiliaria.Models
             {
                 string query = $"""
                     SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    r.Multa, r.FechaCancelacion,
                     r.IdInquilino, 
                     iq.Nombre AS InqNombre, 
                     iq.Apellido AS InqApellido, 
@@ -332,6 +343,7 @@ namespace Grupo18_Inmobiliaria.Models
             {
                 string query = """
                     SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                    r.Multa, r.FechaCancelacion,
                     r.IdInquilino, 
                     iq.Nombre AS InqNombre, 
                     iq.Apellido AS InqApellido, 
@@ -463,6 +475,43 @@ namespace Grupo18_Inmobiliaria.Models
 
             return existe;
         }
+
+
+public int FinalizarAnticipadamente(int idReserva, decimal multa, DateTime fechaCancelacion)
+{
+    int res = -1;
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"
+            UPDATE Reservas
+            SET Multa = @Multa,
+                FechaCancelacion = @FechaCancelacion,
+                Estado = 0
+            WHERE IdReserva = @IdReserva;";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@Multa", multa);
+            command.Parameters.AddWithValue("@FechaCancelacion", fechaCancelacion);
+            command.Parameters.AddWithValue("@IdReserva", idReserva);
+
+            connection.Open();
+            res = command.ExecuteNonQuery();
+        }
+    }
+    return res;
+}
+
+
+
+
+
+
+
+
+
+
+
     }
 }
 
