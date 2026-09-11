@@ -105,5 +105,44 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(PorReserva), new { id = idReserva });
         }
+
+
+[HttpPost]
+public IActionResult EditarConceptoAjax(int idPago, int conceptoPago)
+{
+    try
+    {
+        // 1. Casteamos el valor numérico al Enum
+        var nuevoConceptoEnum = (ConceptoPago)conceptoPago;
+
+        // 2. Llamamos al método de tu repositorio
+        int filasAfectadas = repoPago.ModificarConcepto(idPago, nuevoConceptoEnum);
+
+        if (filasAfectadas > 0)
+        {
+            return Json(new { 
+                success = true, 
+                nuevoConceptoTexto = nuevoConceptoEnum.ToString() 
+            });
+        }
+
+        return Json(new { success = false, message = "No se encontró el pago especificado." });
+    }
+    catch (Exception ex)
+    {
+        return Json(new { success = false, message = ex.Message });
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
     }
 }

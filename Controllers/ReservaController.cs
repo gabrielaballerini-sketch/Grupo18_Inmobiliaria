@@ -62,22 +62,24 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         // CREATE - POST
 
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult Create(Reserva reserva)
+{
+    // 💡 Forzar los horarios fijos de Check-in (15:00) y Check-out (10:00)
+    reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
+    reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Reserva reserva)
-        {
-            foreach (var key in ModelState.Keys
-             .Where(k =>
-                 k.StartsWith("Inquilino") ||
-                 k.StartsWith("Inmueble") ||
-                 k.StartsWith("Usuario") ||
-                 k.StartsWith("PagosEfectuados"))
-             .ToList())
-            {
-                ModelState.Remove(key);
-            }
-
+    foreach (var key in ModelState.Keys
+     .Where(k =>
+         k.StartsWith("Inquilino") ||
+         k.StartsWith("Inmueble") ||
+         k.StartsWith("Usuario") ||
+         k.StartsWith("PagosEfectuados"))
+     .ToList())
+    {
+        ModelState.Remove(key);
+    }
 
 
 
@@ -205,68 +207,68 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow)
+[ValidateAntiForgeryToken]
+public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow)
+{
+    var reserva = repo_Reserva.ObtenerPorId(id);
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+    // 💡 Normalizamos a la fecha pura (o 10:00 hs) para evitar que minutos de más sumen 1 día extra
+    DateTime fechaCancelacionLimpia = fechaCancelacion.Date.AddHours(10);
+
+    // Validar si se está cancelando antes de la fecha original
+    if (fechaCancelacionLimpia < reserva.FechaFin)
+    {
+        // --- CÁLCULO DE LA MULTA CORREGIDO ---
+        int duracionTotalDias = (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
+        int tiempoTranscurridoDias = (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
+        if (tiempoTranscurridoDias < 0) tiempoTranscurridoDias = 0;
+
+        int diasRestantes = (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
+        if (diasRestantes < 0) diasRestantes = 0;
+
+        decimal alquilerRestante = (decimal)diasRestantes * reserva.MontoDiario;
+        decimal multaCalculada = 0;
+
+        if (tiempoTranscurridoDias < ((double)duracionTotalDias / 2))
         {
-            var reserva = repo_Reserva.ObtenerPorId(id);
-            if (reserva == null)
-            {
-                return NotFound();
-            }
-
-            // Validar si se esta cancelando antes de la fecha original
-            if (fechaCancelacion < reserva.FechaFin)
-            {
-                // --- CALCULO DE LA MULTA ---
-                double duracionTotalDias = (reserva.FechaFin - reserva.FechaInicio).TotalDays;
-                double tiempoTranscurridoDias = (fechaCancelacion - reserva.FechaInicio).TotalDays;
-                if (tiempoTranscurridoDias < 0) tiempoTranscurridoDias = 0;
-
-                double diasRestantes = (reserva.FechaFin - fechaCancelacion).TotalDays;
-                if (diasRestantes < 0) diasRestantes = 0;
-
-                decimal alquilerRestante = (decimal)diasRestantes * reserva.MontoDiario;
-                decimal multaCalculada = 0;
-
-                if (tiempoTranscurridoDias < (duracionTotalDias / 2))
-                {
-                    // Menos de la mitad del tiempo cumplido -> 50% del restante
-                    multaCalculada = alquilerRestante * 0.50m;
-                }
-                else
-                {
-                    // Más de la mitad del tiempo cumplido -> 25% del restante
-                    multaCalculada = alquilerRestante * 0.25m;
-                }
-
-                // 2. REGLA DE NEGOCIO: Si hay multa y el operador indica que NO se pagó, frenamos la baja
-                if (multaCalculada > 0 && !pagaMultaNow)
-                {
-                    TempData["Error"] = $"No se puede finalizar. Debe abonar la multa de ${multaCalculada:N2} en el momento.";
-                    return View(reserva);
-                }
-
-                // 3. Guardamos los datos en la entidad
-                reserva.FechaCancelacion = fechaCancelacion;
-                reserva.Multa = multaCalculada;
-            }
-
-            try
-            {
-                // Ejecutamos la baja logica
-                repo_Reserva.Baja(id);
-
-                TempData["Mensaje"] = "Reserva dada de baja con éxito.";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al dar de baja la reserva: " + ex.Message;
-                return View(reserva);
-            }
-
-            return RedirectToAction(nameof(Index));
+            // Menos de la mitad del tiempo cumplido -> 50% del restante
+            multaCalculada = alquilerRestante * 0.50m;
+        }
+        else
+        {
+            // Más de la mitad del tiempo cumplido -> 25% del restante
+            multaCalculada = alquilerRestante * 0.25m;
         }
 
+        // 2. REGLA DE NEGOCIO: Si hay multa y no se abonó, frenar la baja
+        if (multaCalculada > 0 && !pagaMultaNow)
+        {
+            TempData["Error"] = $"No se puede finalizar. Debe abonar la multa de ${multaCalculada:N2} en el momento.";
+            return View(reserva);
+        }
+
+        // 3. Guardar datos en la entidad
+        reserva.FechaCancelacion = fechaCancelacionLimpia;
+        reserva.Multa = multaCalculada;
+    }
+
+    try
+    {
+        repo_Reserva.Baja(id);
+        TempData["Mensaje"] = "Reserva dada de baja con éxito.";
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = "Error al dar de baja la reserva: " + ex.Message;
+        return View(reserva);
+    }
+
+    return RedirectToAction(nameof(Index));
+}
         // EDIT - GET
 
         [HttpGet]
@@ -294,6 +296,13 @@ namespace Grupo18_Inmobiliaria.Controllers
             {
                 return NotFound();
             }
+
+
+         // Forzar horarios fijos
+              reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
+              reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
+
+
 
             // Limpieza de ModelState para propiedades de navegación (igual que en Create)
             foreach (var key in ModelState.Keys

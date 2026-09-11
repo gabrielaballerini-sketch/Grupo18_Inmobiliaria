@@ -80,21 +80,19 @@
                             @reserva.Inmueble.Direccion
                         </td>
 
-                        <td>
-                             <td class="text-center">
-                                <a asp-action="Edit"
-                                   asp-route-id="@reserva.IdReserva"
-                                   class="btn btn-warning btn-sm">
-                                     <i class="bi bi-pencil-square"></i>
-                                </a>
+                   
+                        <td class="text-center">
+                            <a asp-action="Edit" asp-route-id="@reserva.IdReserva" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
 
                             <a asp-action="Delete" asp-route-id="@reserva.IdReserva" class="btn btn-danger btn-sm">
-                                  <i class="bi bi-trash"></i>
+                                <i class="bi bi-trash"></i>
                             </a>
 
                             <a asp-action="Details" asp-route-id="@reserva.IdReserva" class="btn btn-info btn-sm text-white">
-                                 <i class="bi bi-eye"></i>
-                                 </a>
+                                <i class="bi bi-eye"></i>
+                            </a>
 
                         </td>
 
@@ -117,7 +115,7 @@
                     @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
                     {
                         <li class="page-item
-                                                            @(i == ViewBag.PaginaActual ? "active" : "")">
+                            @(i == ViewBag.PaginaActual ? "active" : "")">
 
                             <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-tamPagina="10">
 

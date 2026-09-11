@@ -2,9 +2,8 @@
 
 @{
     ViewData["Title"] = "Nueva Reserva";
-
-    // Genera el formato YYYY-MM-THH:mm requerido por <input type="datetime-local">
-    string fechaMinima = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+    // Genera la fecha mínima en formato YYYY-MM-DD para el input de tipo date
+    string fechaMinima = DateTime.Now.ToString("yyyy-MM-dd");
 }
 
 <div class="container mt-4">
@@ -13,25 +12,23 @@
 
     <hr />
 
+    <!-- Cartel informativo sobre horarios fijos -->
+    <div class="alert alert-info border-0 shadow-sm mb-4">
+        <i class="bi bi-clock-fill me-2"></i>
+        <strong>Horarios de Check-in y Check-out:</strong> 
+        El ingreso se realiza a partir de las <strong>15:00 hs</strong> y el egreso hasta las <strong>10:00 hs</strong>.
+    </div>
+
     <form asp-action="Create" method="post">
 
         @Html.AntiForgeryToken()
 
-        <div asp-validation-summary="ModelOnly"
-             class="text-danger mb-3">
-        </div>
-
-
-        <!-- INQUILINO -->
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
         <!-- INQUILINO CON BÚSQUEDA DINÁMICA -->
         <div class="mb-3 position-relative">
             <label class="form-label">Inquilino</label>
-
-            <!-- Campo oculto que guarda el ID real para el envío del formulario -->
             <input type="hidden" asp-for="IdInquilino" id="IdInquilinoHidden" />
-
-            <!-- Input donde el usuario escribe -->
             <input type="text" 
                    id="buscadorInquilino" 
                    class="form-control" 
@@ -39,102 +36,51 @@
                    autocomplete="off" 
                    value="@(Model?.Inquilino != null ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}" : "")" />
 
-            <!-- Lista desplegable flotante para las sugerencias -->
-            <ul id="listaSugerencias" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;">
-            </ul>
-
+            <ul id="listaSugerencias" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;"></ul>
             <span asp-validation-for="IdInquilino" class="text-danger"></span>
         </div>
 
+        <!-- INMUEBLE CON BÚSQUEDA DINÁMICA -->
+        <div class="mb-3 position-relative">
+            <label class="form-label">Inmueble</label>
+            <input type="hidden" asp-for="IdInmueble" id="IdInmuebleHidden" />
+            <input type="text" 
+                   id="buscadorInmueble" 
+                   class="form-control" 
+                   placeholder="Escriba la dirección del inmueble..." 
+                   autocomplete="off" 
+                   value="@(Model?.Inmueble != null ? Model.Inmueble.Direccion : "")" />
 
-        <!-- INMUEBLE -->
-<!-- INMUEBLE CON BÚSQUEDA DINÁMICA -->
-<div class="mb-3 position-relative">
-    <label class="form-label">Inmueble</label>
+            <ul id="listaSugerenciasInmueble" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;"></ul>
+            <span asp-validation-for="IdInmueble" class="text-danger"></span>
+        </div>
 
-    <!-- Campo oculto que guarda el ID real del inmueble -->
-    <input type="hidden" asp-for="IdInmueble" id="IdInmuebleHidden" />
-
-    <!-- Input donde el usuario escribe la dirección -->
-    <input type="text" 
-           id="buscadorInmueble" 
-           class="form-control" 
-           placeholder="Escriba la dirección del inmueble..." 
-           autocomplete="off" 
-           value="@(Model?.Inmueble != null ? Model.Inmueble.Direccion : "")" />
-
-    <!-- Lista desplegable flotante para las sugerencias de inmuebles -->
-    <ul id="listaSugerenciasInmueble" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;">
-    </ul>
-
-    <span asp-validation-for="IdInmueble" class="text-danger"></span>
-</div>
-
-
-       <!-- MONTO DIARIO -->
+        <!-- MONTO DIARIO -->
         <div class="mb-3">
             <label asp-for="MontoDiario" class="form-label">Monto Diario</label>
             <input asp-for="MontoDiario" id="inputMonto" type="number" step="any" min="0" class="form-control" readonly />
             <span asp-validation-for="MontoDiario" class="text-danger"></span>
         </div>
 
+        <!-- FECHAS (SÓLO DÍA, SIN HORA) -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="FechaInicio" class="form-label font-weight-bold">Fecha de Ingreso</label>
+                <input asp-for="FechaInicio" id="FechaInicio" type="date" min="@fechaMinima" class="form-control" />
+                <span asp-validation-for="FechaInicio" class="text-danger"></span>
+            </div>
 
-        <!-- FECHA INICIO -->
-
-        <div class="mb-3">
-
-            <label asp-for="FechaInicio" class="form-label">
-                Fecha de inicio
-            </label>
-
-            <input asp-for="FechaInicio"
-                   id="FechaInicio"
-                   type="datetime-local"
-                   min="@fechaMinima"
-                   class="form-control" />
-
-            <span asp-validation-for="FechaInicio"
-                  class="text-danger">
-            </span>
-
+            <div class="col-md-6 mb-3">
+                <label asp-for="FechaFin" class="form-label font-weight-bold">Fecha de Egreso</label>
+                <input asp-for="FechaFin" id="FechaFin" type="date" min="@fechaMinima" class="form-control" />
+                <span asp-validation-for="FechaFin" class="text-danger"></span>
+            </div>
         </div>
-
-
-        <!-- FECHA FIN -->
-
-        <div class="mb-3">
-
-            <label asp-for="FechaFin" class="form-label">
-                Fecha de finalización
-            </label>
-
-            <input asp-for="FechaFin"
-                   id="FechaFin"
-                   type="datetime-local"
-                   min="@fechaMinima"
-                   class="form-control" />
-
-            <span asp-validation-for="FechaFin"
-                  class="text-danger">
-            </span>
-
-        </div>
-
 
         <!-- BOTONES -->
-
         <div class="mt-4">
-
-            <button type="submit"
-                    class="btn btn-primary">
-                Guardar Reserva
-            </button>
-
-            <a asp-action="Index"
-               class="btn btn-secondary">
-                Volver
-            </a>
-
+            <button type="submit" class="btn btn-primary">Guardar Reserva</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
         </div>
 
     </form>
@@ -186,7 +132,6 @@
         }, 300);
     });
 
-
     // 2. BÚSQUEDA DINÁMICA DE INMUEBLES
     const inputBuscadorInmueble = document.getElementById("buscadorInmueble");
     const inputHiddenInmueble = document.getElementById("IdInmuebleHidden");
@@ -200,7 +145,7 @@
 
         if (term.length < 2) {
             listaSugerenciasInmueble.style.display = "none";
-            inputMonto.value = ""; // Limpia el monto si borra el texto
+            inputMonto.value = "";
             return;
         }
 
@@ -222,7 +167,7 @@
                                 e.preventDefault();
                                 inputHiddenInmueble.value = item.id;
                                 inputBuscadorInmueble.value = item.direccion;
-                                inputMonto.value = item.precio; // Carga automáticamente el precio del inmueble seleccionado
+                                inputMonto.value = item.precio;
                                 listaSugerenciasInmueble.style.display = "none";
                             });
 
@@ -235,7 +180,6 @@
         }, 300);
     });
 
-
     // CERRAR LISTAS AL HACER CLIC AFUERA
     document.addEventListener("click", function (e) {
         if (!inputBuscadorInquilino.contains(e.target) && !listaSugerenciasInquilino.contains(e.target)) {
@@ -245,7 +189,6 @@
             listaSugerenciasInmueble.style.display = "none";
         }
     });
-
 
     // 3. CONTROL DE FECHAS
     const inputInicio = document.getElementById("FechaInicio");
@@ -258,5 +201,15 @@
                 inputFin.value = this.value;
             }
         }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = document.querySelector("form");
+        form.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+                e.preventDefault();
+                return false;
+            }
+        });
     });
 </script>

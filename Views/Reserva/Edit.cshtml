@@ -2,7 +2,8 @@
 
 @{
     ViewData["Title"] = "Editar Reserva";
-    string fechaMinima = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+
+    string fechaMinima = DateTime.Now.ToString("yyyy-MM-dd");
 }
 
 <div class="container mt-4">
@@ -10,6 +11,13 @@
     <h1>Editar Reserva</h1>
 
     <hr />
+
+    <!-- Cartel informativo sobre horarios fijos -->
+    <div class="alert alert-info border-0 shadow-sm mb-4">
+        <i class="bi bi-clock-fill me-2"></i>
+        <strong>Horarios de Check-in y Check-out:</strong> 
+        El ingreso se realiza a partir de las <strong>15:00 hs</strong> y el egreso hasta las <strong>10:00 hs</strong>.
+    </div>
 
     <form asp-action="Edit" method="post">
 
@@ -72,19 +80,27 @@
         </div>
 
 
-        <!-- FECHA INICIO -->
-        <div class="mb-3">
-            <label asp-for="FechaInicio" class="form-label">Fecha de inicio</label>
-            <input asp-for="FechaInicio" id="FechaInicio" type="datetime-local" class="form-control" />
-            <span asp-validation-for="FechaInicio" class="text-danger"></span>
-        </div>
+        <!-- FECHAS (SÓLO DÍA, SIN HORA) -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="FechaInicio" class="form-label font-weight-bold">Fecha de Ingreso</label>
+                <input asp-for="FechaInicio" 
+                       id="FechaInicio" 
+                       type="date" 
+                       value="@(Model?.FechaInicio != DateTime.MinValue ? Model?.FechaInicio.ToString("yyyy-MM-dd") : "")" 
+                       class="form-control" />
+                <span asp-validation-for="FechaInicio" class="text-danger"></span>
+            </div>
 
-
-        <!-- FECHA FIN -->
-        <div class="mb-3">
-            <label asp-for="FechaFin" class="form-label">Fecha de finalización</label>
-            <input asp-for="FechaFin" id="FechaFin" type="datetime-local" class="form-control" />
-            <span asp-validation-for="FechaFin" class="text-danger"></span>
+            <div class="col-md-6 mb-3">
+                <label asp-for="FechaFin" class="form-label font-weight-bold">Fecha de Egreso</label>
+                <input asp-for="FechaFin" 
+                       id="FechaFin" 
+                       type="date" 
+                       value="@(Model?.FechaFin != DateTime.MinValue ? Model?.FechaFin.ToString("yyyy-MM-dd") : "")" 
+                       class="form-control" />
+                <span asp-validation-for="FechaFin" class="text-danger"></span>
+            </div>
         </div>
 
 
@@ -174,7 +190,7 @@
                                     e.preventDefault();
                                     inputHiddenInmueble.value = item.id;
                                     inputBuscadorInmueble.value = item.direccion;
-                                    inputMonto.value = item.precio; // Actualiza el monto diario automáticamente
+                                    inputMonto.value = item.precio;
                                     listaSugerenciasInmueble.style.display = "none";
                                 });
                                 listaSugerenciasInmueble.appendChild(li);
@@ -195,6 +211,29 @@
             if (!inputBuscadorInmueble.contains(e.target) && !listaSugerenciasInmueble.contains(e.target)) {
                 listaSugerenciasInmueble.style.display = "none";
             }
+        });
+
+        // CONTROL DE FECHAS (Relación inicio vs fin)
+        const inputInicio = document.getElementById("FechaInicio");
+        const inputFin = document.getElementById("FechaFin");
+
+        inputInicio.addEventListener("change", function () {
+            if (this.value) {
+                inputFin.min = this.value;
+                if (inputFin.value && inputFin.value < this.value) {
+                    inputFin.value = this.value;
+                }
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.querySelector("form");
+            form.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+                    e.preventDefault();
+                    return false;
+                }
+            });
         });
     </script>
 }

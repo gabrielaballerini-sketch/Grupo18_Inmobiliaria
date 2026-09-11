@@ -4,76 +4,186 @@
     var reserva = ViewBag.Reserva as Grupo18_Inmobiliaria.Models.Reserva;
     ViewData["Title"] = $"Pagos de la Reserva #{reserva?.IdReserva}";
     
-    // Calculamos el total abonado considerando solo los pagos activos
     decimal totalPagado = Model.Where(p => p.Estado).Sum(p => p.Importe);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Pagos de la Reserva #@reserva?.IdReserva</h1>
-    <div>
-        <a asp-action="Crear" asp-route-id="@reserva?.IdReserva" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Registrar Pago
-        </a>
-        <a asp-controller="Reserva" asp-action="Index" class="btn btn-secondary">Volver a Reservas</a>
-    </div>
-</div>
+<div id="appPagosListado">
+    @Html.AntiForgeryToken()
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">Resumen de Pagos</h5>
-        <p class="card-text mb-0"><strong>Total Acumulado (Activos):</strong> @totalPagado.ToString("C")</p>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Pagos de la Reserva #@reserva?.IdReserva</h1>
+        <div>
+            <a asp-action="Crear" asp-route-id="@reserva?.IdReserva" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Registrar Pago
+            </a>
+            <a asp-controller="Reserva" asp-action="Index" class="btn btn-secondary">Volver a Reservas</a>
+        </div>
     </div>
-</div>
 
-<table class="table table-striped align-middle">
-    <thead>
-        <tr>
-            <th>Nº Pago</th>
-            <th>Fecha</th>
-            <th>Importe</th>
-            <th>Concepto</th>
-            <th>Medio de Pago</th>
-            <th>Creado Por</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr class="@(!item.Estado ? "table-danger text-muted" : "")">
-                <td>@item.IdPago</td>
-                <td>@item.FechaPago.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@item.Importe.ToString("C")</td>
-                <td>@item.ConceptoPago</td>
-                <td>@item.MedioPago</td>
-                <td>@(item.UsuarioCreador?.UserName ?? "-")</td>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Resumen de Pagos</h5>
+            <p class="card-text mb-0"><strong>Total Acumulado (Activos):</strong> @totalPagado.ToString("C")</p>
+        </div>
+    </div>
+
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Nº Pago</th>
+                <th>Fecha</th>
+                <th>Importe</th>
+                <th>Concepto</th>
+                <th>Medio de Pago</th>
+                <th>Creado Por</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item in pagos" :key="item.idPago" :class="{'table-danger text-muted': !item.estado}">
+                <td>{{ item.idPago }}</td>
+                <td>{{ item.fechaPagoFormatted }}</td>
+                <td>{{ item.importeFormatted }}</td>
                 <td>
-                    @if (item.Estado)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger" title="Anulado por @item.UsuarioAnulador?.UserName">Anulado</span>
-                    }
+                    <!-- Muestra el nombre del concepto reactivo en Vue -->
+                    <span class="fw-bold">{{ item.conceptoTexto }}</span>
+                </td>
+                <td>{{ item.medioPago }}</td>
+                <td>{{ item.usuarioCreador }}</td>
+                <td>
+                    <span v-if="item.estado" class="badge bg-success">Activo</span>
+                    <span v-else class="badge bg-danger">Anulado</span>
                 </td>
                 <td>
-                    @if (item.Estado)
-                    {
+                    <div v-if="item.estado" class="btn-group" role="group">
+                        <!-- BOTÓN EDITAR QUE ABRE EL MODAL DE VUE -->
+                        <button type="button" 
+                                class="btn btn-outline-warning btn-sm me-1" 
+                                v-on:click="abrirModalEditar(item)">
+                            Editar
+                        </button>
+
                         <form asp-action="Anular" method="post" style="display:inline;" onsubmit="return confirm('¿Seguro que querés anular este pago?');">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="idPago" value="@item.IdPago" />
-                            <input type="hidden" name="idReserva" value="@item.IdReserva" />
+                            <input type="hidden" name="idPago" :value="item.idPago" />
+                            <input type="hidden" name="idReserva" value="@reserva?.IdReserva" />
                             <button type="submit" class="btn btn-outline-danger btn-sm">Anular</button>
                         </form>
-                    }
-                    else
-                    {
-                        <small class="text-muted">Anulado por @item.UsuarioAnulador?.UserName</small>
-                    }
+                    </div>
+                    <small v-else class="text-muted">Anulado por {{ item.usuarioAnulador }}</small>
                 </td>
             </tr>
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+
+    <!-- MODAL DE VUE PARA EDITAR CONCEPTO -->
+    <div class="modal fade" id="modalEditarConcepto" tabindex="-1" ref="modalRef">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Concepto (Pago #{{ pagoSeleccionado?.idPago }})</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Concepto de Pago</label>
+                        <select v-model="nuevoConceptoValor" class="form-select" required>
+                            @foreach (var item in Html.GetEnumSelectList<Grupo18_Inmobiliaria.Models.ConceptoPago>())
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary"v-on:click="guardarConceptoAjax" :disabled="cargando">
+                        <span v-if="cargando" class="spinner-border spinner-border-sm me-1"></span>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // Mapeamos los pagos iniciales que vienen del Modelo Razor a JavaScript
+                    pagos: @Html.Raw(Json.Serialize(Model.Select(p => new {
+                        idPago = p.IdPago,
+                        fechaPagoFormatted = p.FechaPago.ToString("dd/MM/yyyy HH:mm"),
+                        importeFormatted = p.Importe.ToString("C"),
+                        conceptoValor = (int)p.ConceptoPago,
+                        conceptoTexto = p.ConceptoPago.ToString(),
+                        medioPago = p.MedioPago.ToString(),
+                        usuarioCreador = p.UsuarioCreador != null ? p.UsuarioCreador.UserName : "-",
+                        usuarioAnulador = p.UsuarioAnulador != null ? p.UsuarioAnulador.UserName : "-",
+                        estado = p.Estado
+                    }))),
+                    
+                    pagoSeleccionado: null,
+                    nuevoConceptoValor: '',
+                    bsModal: null,
+                    cargando: false
+                }
+            },
+            mounted() {
+                this.bsModal = new bootstrap.Modal(this.$refs.modalRef);
+            },
+            methods: {
+                abrirModalEditar(item) {
+                    this.pagoSeleccionado = item;
+                    this.nuevoConceptoValor = item.conceptoValor.toString();
+                    this.bsModal.show();
+                },
+                guardarConceptoAjax() {
+                    if (!this.pagoSeleccionado) return;
+
+                    this.cargando = true;
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    // FormData para enviar la solicitud POST por AJAX al backend
+                    const formData = new FormData();
+                    formData.append("idPago", this.pagoSeleccionado.idPago);
+                    formData.append("conceptoPago", this.nuevoConceptoValor);
+
+                    fetch('/Pago/EditarConceptoAjax', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        this.cargando = false;
+                        if (data.success) {
+                            // Actualizamos reactivamente el valor en el estado de Vue
+                            this.pagoSeleccionado.conceptoValor = parseInt(this.nuevoConceptoValor);
+                            this.pagoSeleccionado.conceptoTexto = data.nuevoConceptoTexto;
+                            
+                            this.bsModal.hide();
+                        } else {
+                            alert(data.message || "Ocurrió un error al guardar el concepto.");
+                        }
+                    })
+                    .catch(err => {
+                        this.cargando = false;
+                        console.error("Error:", err);
+                        alert("Error de conexión al intentar actualizar el concepto.");
+                    });
+                }
+            }
+        }).mount('#appPagosListado');
+    </script>
+}
