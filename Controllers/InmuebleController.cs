@@ -269,16 +269,23 @@ public IActionResult ObtenerJson(int id)
         } : null
     });
 }
-
 [HttpGet]
-public IActionResult Disponibles(DateTime fechaInicio, DateTime fechaFin)
+public IActionResult BuscarDisponibles(DateTime fechaInicio, DateTime fechaFin)
 {
-    // Obtener inmuebles que NO están reservados en ese rango de fechas
     var inmuebles = repo_Inmueble.ObtenerDisponiblesEntreFechas(fechaInicio, fechaFin);
-    
-    // Retornamos JSON para consumir desde el fetch de Vue
     return Json(inmuebles);
 }
+
+
+
+
+[HttpGet]
+public IActionResult Disponibles()
+{
+    return View();
+}
+
+
 
 
 [HttpPost]
