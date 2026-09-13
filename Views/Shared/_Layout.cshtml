@@ -11,12 +11,12 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Grupo18_Inmobiliaria.styles.css" asp-append-version="true" />
 
-<!-- Cargar Vue 3 CDN -->
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Cargar Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-<!-- Cargar Leaflet (CSS y JS) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Cargar Leaflet (CSS y JS) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 
 </head>
@@ -28,7 +28,7 @@
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Grupo18_Inmobiliaria</a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -42,23 +42,23 @@
 
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Inquilino"
-                               asp-action="Index">Inquilino</a>
+                                asp-action="Index">Inquilino</a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Propietario"
-                               asp-action="Index">Propietario</a>
+                                asp-action="Index">Propietario</a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Reserva"
-                               asp-action="Index">Reserva</a>
+                                asp-action="Index">Reserva</a>
                         </li>
 
                         <li class="nav-item dropdown">
 
                             <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdownInmuebles"
-                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Inmueble
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownInmuebles">
@@ -68,23 +68,23 @@
                                     </a>
                                 </li>
 
-                               <li>
+                                <li>
                                     <a class="dropdown-item" asp-controller="Inmueble" asp-action="Index">
                                         <i class="bi bi-list-ul me-1"></i> Listado Por Propietario
                                     </a>
                                 </li>
 
-                                 <li>
+                                <li>
                                     <a class="dropdown-item" asp-controller="Inmueble" asp-action="Index">
                                         <i class="bi bi-list-ul me-1"></i> Mas Reservados
                                     </a>
-                                </li> 
+                                </li>
 
                                 <li>
                                     <a class="dropdown-item" asp-controller="Inmueble" asp-action="Index">
                                         <i class="bi bi-list-ul me-1"></i> Menos Reservados
                                     </a>
-                                </li> 
+                                </li>
 
                                 <li>
                                     <a class="dropdown-item" asp-controller="Inmueble" asp-action="Disponibles">
@@ -106,11 +106,11 @@
 
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Usuario"
-                               asp-action="Index">Usuario</a>
+                                asp-action="Index">Usuario</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="TipoInmueble"
-                               asp-action="Index">Tipo de Inmueble</a>
+                                asp-action="Index">Tipo de Inmueble</a>
                         </li>
 
 

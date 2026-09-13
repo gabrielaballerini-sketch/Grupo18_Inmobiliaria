@@ -42,7 +42,7 @@ namespace Grupo18_Inmobiliaria.Models
 
         [Required]
         public decimal PorcentajeReserva{get;set;}
-        [Required]
+        
         public string ImagenUrl {get;set;}="";
         
          [ValidateNever]

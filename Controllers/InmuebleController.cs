@@ -9,12 +9,14 @@ namespace Grupo18_Inmobiliaria.Controllers
         private readonly IRepositorioInmueble repo_Inmueble;
         private readonly IRepositorioPropietario repo_Propietario;
         private readonly IRepositorio<TipoInmueble> repo_Tipo;
+        private readonly IRepositorioImagen repo_Imagen;
 
-        public InmuebleController(IRepositorioInmueble repoInmueble, IRepositorioPropietario repoPropietario, IRepositorio<TipoInmueble> repoTipo)
+        public InmuebleController(IRepositorioInmueble repoInmueble, IRepositorioPropietario repoPropietario, IRepositorio<TipoInmueble> repoTipo, IRepositorioImagen repoImagen)
         {
             this.repo_Inmueble = repoInmueble;
             this.repo_Propietario = repoPropietario;
             this.repo_Tipo = repoTipo;
+            this.repo_Imagen = repoImagen;
 
         }
 
@@ -72,7 +74,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al crear el inmueble: " + ex.Message;
+                TempData["Error"] = "Error al crear el inmueble: " + ex;
                 CargarDesplegables(inmueble.IdPropietario, inmueble.IdTipoInmueble);
                 return View(inmueble);
             }
@@ -229,89 +231,96 @@ namespace Grupo18_Inmobiliaria.Controllers
                 tipos, "IdTipoInmueble", "Descripcion", selectedTipo);
         }
 
-//vue
-// GET: Inmueble/PorPropietario/5
-[HttpGet]
-public IActionResult PorPropietario(int id)
-{
-    //filtra los inmuebles de este propietario
-    var lista = repo_Inmueble.BuscarPorPropietario(id); 
-    return Json(lista);
-}
+        //vue
+        // GET: Inmueble/PorPropietario/5
+        [HttpGet]
+        public IActionResult PorPropietario(int id)
+        {
+            //filtra los inmuebles de este propietario
+            var lista = repo_Inmueble.BuscarPorPropietario(id);
+            return Json(lista);
+        }
 
-// GET: Inmueble/ObtenerJson/5
-[HttpGet]
-public IActionResult ObtenerJson(int id)
-{
-    var inmueble = repo_Inmueble.ObtenerPorId(id);
-    if (inmueble == null) return NotFound();
+        // GET: Inmueble/ObtenerJson/5
+        [HttpGet]
+        public IActionResult ObtenerJson(int id)
+        {
+            var inmueble = repo_Inmueble.ObtenerPorId(id);
+            if (inmueble == null) return NotFound();
 
-    return Json(new {
-        idInmueble = inmueble.IdInmueble,
-        direccion = inmueble.Direccion,
-        capacidad = inmueble.Capacidad,
-        latitud = inmueble.Latitud,
-        longitud = inmueble.Longitud,
-        precioAlquiler = inmueble.PrecioAlquiler,
-        porcentajeReserva = inmueble.PorcentajeReserva,
-        estado = inmueble.Estado,
-        tipoInmueble = inmueble.TipoInmueble != null ? new {
-            idTipoInmueble = inmueble.TipoInmueble.IdTipoInmueble,
-            descripcion = inmueble.TipoInmueble.Descripcion
-        } : null,
-        propietario = inmueble.Propietario != null ? new {
-            idPropietario = inmueble.Propietario.IdPropietario,
-            nombre = inmueble.Propietario.Nombre,
-            apellido = inmueble.Propietario.Apellido,
-            dni = inmueble.Propietario.Dni,
-            telefono = inmueble.Propietario.Telefono,
-            email = inmueble.Propietario.Email
-        } : null
-    });
-}
-[HttpGet]
-public IActionResult BuscarDisponibles(DateTime fechaInicio, DateTime fechaFin)
-{
-    var inmuebles = repo_Inmueble.ObtenerDisponiblesEntreFechas(fechaInicio, fechaFin);
-    return Json(inmuebles);
-}
-
-
-
-
-[HttpGet]
-public IActionResult Disponibles()
-{
-    return View();
-}
+            return Json(new
+            {
+                idInmueble = inmueble.IdInmueble,
+                direccion = inmueble.Direccion,
+                capacidad = inmueble.Capacidad,
+                latitud = inmueble.Latitud,
+                longitud = inmueble.Longitud,
+                precioAlquiler = inmueble.PrecioAlquiler,
+                porcentajeReserva = inmueble.PorcentajeReserva,
+                estado = inmueble.Estado,
+                tipoInmueble = inmueble.TipoInmueble != null ? new
+                {
+                    idTipoInmueble = inmueble.TipoInmueble.IdTipoInmueble,
+                    descripcion = inmueble.TipoInmueble.Descripcion
+                } : null,
+                propietario = inmueble.Propietario != null ? new
+                {
+                    idPropietario = inmueble.Propietario.IdPropietario,
+                    nombre = inmueble.Propietario.Nombre,
+                    apellido = inmueble.Propietario.Apellido,
+                    dni = inmueble.Propietario.Dni,
+                    telefono = inmueble.Propietario.Telefono,
+                    email = inmueble.Propietario.Email
+                } : null
+            });
+        }
+        [HttpGet]
+        public IActionResult BuscarDisponibles(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var inmuebles = repo_Inmueble.ObtenerDisponiblesEntreFechas(fechaInicio, fechaFin);
+            return Json(inmuebles);
+        }
 
 
 
 
-[HttpPost]
+        [HttpGet]
+        public IActionResult Disponibles()
+        {
+            return View();
+        }
+
+
+
+
+        [HttpPost]
 [ValidateAntiForgeryToken]
 public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment, [FromServices] IRepositorioImagen repositorioImagen)
 {
-
-// Limpiamos del ModelState los objetos de navegación que vienen nulos en el POST
+    // Limpiamos del ModelState los objetos de navegación que vienen nulos en el POST
     ModelState.Remove("Propietario");
     ModelState.Remove("TipoInmueble");
-      ModelState.Remove("Imagenes");
-
-
-
+    ModelState.Remove("Imagenes");
+    ModelState.Remove("ImagenUrl");
 
     if (!ModelState.IsValid)
     {
-        return BadRequest("Revisá los datos ingresados en el formulario.");
+        var errores = ModelState
+            .Where(x => x.Value.Errors.Count > 0)
+            .Select(x => new {
+                Campo = x.Key,
+                Errores = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
+            });
+
+        return BadRequest(errores);
     }
 
     try
     {
         // 1. Guardar el inmueble en la BD y obtener su ID recién generado
-        int nuevoId = repo_Inmueble.Alta(inmueble); 
+        int nuevoId = repo_Inmueble.Alta(inmueble);
 
-        // 2. Si se adjuntaron fotos, crear carpeta y guardarlas en wwwroot
+        // 2. Si se adjuntaron fotos, crear carpeta, guardarlas en wwwroot y registrar la portada
         if (imagenes != null && imagenes.Count > 0)
         {
             string wwwPath = environment.WebRootPath;
@@ -321,6 +330,8 @@ public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> i
             {
                 Directory.CreateDirectory(path);
             }
+
+            string? primeraUrl = null;
 
             foreach (var file in imagenes)
             {
@@ -335,15 +346,27 @@ public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> i
                         await file.CopyToAsync(stream);
                     }
 
+                    var url = $"/Uploads/Inmuebles/{nuevoId}/{nombreArchivo}";
+
                     // Guardar en la tabla de imágenes asociada al inmueble
                     Imagen imagen = new Imagen
                     {
                         IdInmueble = nuevoId,
-                        Url = $"/Uploads/Inmuebles/{nuevoId}/{nombreArchivo}"
+                        Url = url
                     };
-
                     repositorioImagen.Alta(imagen);
+
+                    // La primera imagen subida queda como portada
+                    if (primeraUrl == null)
+                    {
+                        primeraUrl = url;
+                    }
                 }
+            }
+
+            if (primeraUrl != null)
+            {
+                repo_Inmueble.ModificarPortada(nuevoId, primeraUrl);
             }
         }
 
@@ -357,7 +380,7 @@ public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> i
 
 
 
-[HttpGet]
+        [HttpGet]
 public IActionResult Details(int id)
 {
     var inmueble = repo_Inmueble.ObtenerPorId(id);
@@ -365,6 +388,9 @@ public IActionResult Details(int id)
     {
         return NotFound();
     }
+
+    inmueble.ListaImagenes = repo_Imagen.ObtenerPorInmueble(id);
+
     return View(inmueble);
 }
 

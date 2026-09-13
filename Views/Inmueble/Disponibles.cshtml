@@ -63,7 +63,7 @@
                         <strong>Precio por día:</strong> $<span v-text="item.precioAlquiler || item.PrecioAlquiler"></span>
                     </p>
                     
-                    <a :href="'/Reserva/Crear?idInmueble=' + (item.idInmueble || item.IdInmueble) + '&desde=' + fechaInicio + '&hasta=' + fechaFin" 
+                    <a :href="'/Reserva/Create?idInmueble=' + (item.idInmueble || item.IdInmueble) + '&desde=' + fechaInicio + '&hasta=' + fechaFin" 
                        class="btn btn-outline-success btn-sm w-100">
                         Reservar este Inmueble
                     </a>

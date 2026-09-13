@@ -12,38 +12,36 @@ namespace Grupo18_Inmobiliaria.Models
 
         }
         public int Alta(Inmueble inmueble)
+{
+    int res = -1;
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = """
+        INSERT INTO inmuebles(Direccion,Capacidad,PrecioAlquiler,IdPropietario,Estado,IdTipoInmueble,Latitud,Longitud,PorcentajeReserva)
+        VALUES(@Direccion,@Capacidad,@PrecioAlquiler,@IdPropietario,1,@IdTipoInmueble,@Latitud,@Longitud,@PorcentajeReserva);
+        SELECT LAST_INSERT_ID();
+        """;
+        using (var command = new MySqlCommand(sql, connection))
         {
-            int res = -1;
+            command.CommandType = CommandType.Text;
 
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                string sql = """
-                INSERT Into inmuebles(Direccion,Capacidad,PrecioAlquiler,IdPropietario,Estado,IdTipoInmueble,Latitud,Longitud)
-                VALUES(@Direccion,@Capacidad,@PrecioAlquiler,@IdPropietario,1,@IdTipoInmueble,@Latitud,@Longitud);
-                SELECT LAST_INSERT_ID();
-                """;
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.CommandType = CommandType.Text;
+            command.Parameters.AddWithValue("@Direccion", inmueble.Direccion);
+            command.Parameters.AddWithValue("@Capacidad", inmueble.Capacidad);
+            command.Parameters.AddWithValue("@PrecioAlquiler", inmueble.PrecioAlquiler);
+            command.Parameters.AddWithValue("@IdPropietario", inmueble.IdPropietario);
+            command.Parameters.AddWithValue("@IdTipoInmueble", inmueble.IdTipoInmueble);
+            command.Parameters.AddWithValue("@Latitud", (object?)inmueble.Latitud ?? DBNull.Value);
+            command.Parameters.AddWithValue("@Longitud", (object?)inmueble.Longitud ?? DBNull.Value);
+            command.Parameters.AddWithValue("@PorcentajeReserva", inmueble.PorcentajeReserva);
 
-                    command.Parameters.AddWithValue("@Direccion", inmueble.Direccion);
-                    command.Parameters.AddWithValue("@Capacidad", inmueble.Capacidad);
-                    command.Parameters.AddWithValue("@PrecioAlquiler", inmueble.PrecioAlquiler);
-                    command.Parameters.AddWithValue("@IdPropietario", inmueble.IdPropietario);
-                    command.Parameters.AddWithValue("@IdTipoInmueble", inmueble.IdTipoInmueble);
-                    command.Parameters.AddWithValue("@Latitud", (object?)inmueble.Latitud ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@Longitud", (object?)inmueble.Longitud ?? DBNull.Value);
-
-                    connection.Open();
-
-                    res = Convert.ToInt32(command.ExecuteScalar());
-                    inmueble.IdInmueble = res;
-
-                }
-
-            }
-            return res;
+            connection.Open();
+            res = Convert.ToInt32(command.ExecuteScalar());
+            inmueble.IdInmueble = res;
         }
+    }
+    return res;
+}
 
         public int Baja(int id)
         {
@@ -80,6 +78,7 @@ namespace Grupo18_Inmobiliaria.Models
                     PrecioAlquiler = @precioAlquiler,
                     IdPropietario = @idPropietario,
                     IdTipoInmueble = @idTipoInmueble
+                    PorcentajeReserva = @porcentajeReserva
                 WHERE IdInmueble = @IdInmueble;";
 
                 using (var command = new MySqlCommand(sql, connection))
@@ -93,6 +92,7 @@ namespace Grupo18_Inmobiliaria.Models
                     command.Parameters.AddWithValue("@precioAlquiler", inmueble.PrecioAlquiler);
                     command.Parameters.AddWithValue("@idPropietario", inmueble.IdPropietario);
                     command.Parameters.AddWithValue("@idTipoInmueble", inmueble.IdTipoInmueble);
+                    command.Parameters.AddWithValue("@PorcentajeReserva", inmueble.PorcentajeReserva);
                     command.Parameters.AddWithValue("@IdInmueble", inmueble.IdInmueble);
 
                     connection.Open();
@@ -133,6 +133,8 @@ namespace Grupo18_Inmobiliaria.Models
                 string query = $@"
              SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
                  i.IdPropietario, 
+                 i.ImagenUrl,
+                 i.PorcentajeReserva,
                  p.Nombre AS PropNombre, 
                  p.Apellido AS PropApellido, 
                  p.Dni AS PropDni, 
@@ -177,6 +179,8 @@ namespace Grupo18_Inmobiliaria.Models
                 Capacidad = reader.GetInt32(reader.GetOrdinal("Capacidad")),
                 Latitud = reader.GetDecimal(reader.GetOrdinal("Latitud")),
                 Longitud = reader.GetDecimal(reader.GetOrdinal("Longitud")),
+                ImagenUrl = reader.IsDBNull(reader.GetOrdinal("ImagenUrl")) ? "" : reader.GetString(reader.GetOrdinal("ImagenUrl")),
+                PorcentajeReserva = reader.GetDecimal(reader.GetOrdinal("PorcentajeReserva")),
                 PrecioAlquiler = reader.GetDecimal(reader.GetOrdinal("PrecioAlquiler")),
                 Estado = reader.GetBoolean(reader.GetOrdinal("Estado")),
                 IdPropietario = reader.GetInt32(reader.GetOrdinal("IdPropietario")),
@@ -211,7 +215,9 @@ namespace Grupo18_Inmobiliaria.Models
 
                 string query = $@"
                    SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-                    i.IdPropietario, 
+                    i.IdPropietario,
+                    i.ImagenUrl,
+                    i.PorcentajeReserva,
                      p.Nombre AS PropNombre, 
                       p.Apellido AS PropApellido, 
                      p.Dni AS PropDni, 
@@ -258,7 +264,9 @@ namespace Grupo18_Inmobiliaria.Models
             {
                 string query = @"
           SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-           i.IdPropietario, 
+           i.IdPropietario,
+           i.PorcentajeReserva,
+           i.ImagenUrl,
              p.Nombre AS PropNombre, 
               p.Apellido AS PropApellido, 
              p.Dni AS PropDni, 
@@ -356,7 +364,7 @@ namespace Grupo18_Inmobiliaria.Models
             {
                 string query = @"
             SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, i.PrecioAlquiler, i.Estado,
-              i.IdPropietario, 
+              i.IdPropietario, i.PorcentajeReserva, i.ImagenUrl,
              p.Nombre AS PropNombre, 
              p.Apellido AS PropApellido, 
              p.Dni AS PropDni, 
@@ -400,7 +408,7 @@ public IList<Inmueble> ObtenerDisponiblesEntreFechas(DateTime fechaInicio, DateT
         string sql = @"
             SELECT 
                 i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, 
-                i.PrecioAlquiler, i.Estado, i.IdPropietario, 
+                i.PrecioAlquiler, i.Estado, i.IdPropietario, i.PorcentajeReserva,i.ImagenUrl,
                 p.Nombre AS PropNombre, p.Apellido AS PropApellido, 
                 p.Dni AS PropDni, p.Telefono AS PropTelefono, p.Email AS PropEmail,
                 i.IdTipoInmueble, t.Descripcion AS TipoDescripcion
