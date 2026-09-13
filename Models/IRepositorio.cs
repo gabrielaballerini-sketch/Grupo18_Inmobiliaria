@@ -23,6 +23,6 @@ namespace Grupo18_Inmobiliaria.Models
 
         int ObtenerCantidad(bool? soloActivos = true);
 
-        T ObtenerPorId(int id);
+        T? ObtenerPorId(int id);
     }
 }

@@ -1,7 +1,7 @@
-using Grupo18_Inmobiliaria.Models;
+
 using System.Data;
 using MySqlConnector;
-using Microsoft.AspNetCore.Mvc.Razor;
+
 
 namespace Grupo18_Inmobiliaria.Models
 {

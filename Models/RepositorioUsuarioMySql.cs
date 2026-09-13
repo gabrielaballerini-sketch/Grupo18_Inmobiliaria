@@ -1,11 +1,11 @@
-using Grupo18_Inmobiliaria.Models;
+
 using System.Data;
 using MySqlConnector;
 
 
 namespace Grupo18_Inmobiliaria.Models
 {
-    public class RepositorioUsuarioMySql : RepositorioBase, IRepositorio<Usuario>
+    public class RepositorioUsuarioMySql : RepositorioBase, IRepositorioUsuario
     {
 
         public RepositorioUsuarioMySql(IConfiguration configuration) : base(configuration)
@@ -208,11 +208,40 @@ namespace Grupo18_Inmobiliaria.Models
                 IdUsuario = reader.GetInt32("IdUsuario"),
                 UserName = reader.GetString("UserName"),
                 Password = reader.GetString("Password"),
-                RolUsuario = (RoLUsuario)reader.GetInt32("RolUsuario"), // Casteo del int de la BD al Enum
+                RolUsuario = (RolUsuario)reader.GetInt32("RolUsuario"), // Casteo del int de la BD al Enum
                 Estado = reader.GetBoolean("Estado"),
                 ListaReservas = new List<Reserva>() // Inicializada vacía 
             };
         }
+
+        public Usuario? ObtenerPorUserName(string userName)
+        {
+            Usuario? usuario = null;
+
+            using var connection = new MySqlConnection(connectionString);
+
+            string sql = """
+        SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+        FROM Usuarios
+        WHERE UserName = @UserName;
+        """;
+
+            using var command = new MySqlCommand(sql, connection);
+
+            command.Parameters.AddWithValue("@UserName", userName);
+
+            connection.Open();
+
+            using var reader = command.ExecuteReader();
+
+            if (reader.Read())
+            {
+                usuario = MapearUsuario(reader);
+            }
+
+            return usuario;
+        }
+
 
     }
 };

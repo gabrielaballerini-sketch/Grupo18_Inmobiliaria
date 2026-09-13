@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Grupo18_Inmobiliaria.Controllers
 {
-
+    [Authorize]
     public class PagoController : Controller
     {
         private readonly IRepositorioPago repoPago;
@@ -61,7 +61,7 @@ namespace Grupo18_Inmobiliaria.Controllers
                 try
                 {
                     // Obtenemos el Id del usuario autenticado en la sesión
-                    int idUsuarioActual = int.Parse(User.FindFirst("IdUsuario")?.Value ?? "1");
+                    int idUsuarioActual = int.Parse(User.FindFirst("IdUsuario")!.Value);
                     pago.IdUsuarioCreador = idUsuarioActual;
 
                     repoPago.Alta(pago);
@@ -79,6 +79,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
         // POST: Pago/Anular/5
+        [Authorize(Roles ="Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
       

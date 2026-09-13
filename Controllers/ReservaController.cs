@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Grupo18_Inmobiliaria.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Grupo18_Inmobiliaria.Controllers
-{
+{   
+    [Authorize]
     public class ReservaController : Controller
     {
         private readonly IRepositorioReserva repo_Reserva;
@@ -28,6 +30,11 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
         {
+            if (pagina < 1)
+                pagina = 1;
+
+            if (tamPagina <= 0)
+                tamPagina = 10;
             try
             {
                 var lista = repo_Reserva.ObtenerActivos(pagina, tamPagina);
@@ -164,9 +171,11 @@ public IActionResult Create(Reserva reserva)
 
             try
             {
-                // TEMPORAL
-                // Hasta que armemos Usuario.
-                reserva.IdUsuario = 2;
+               int idUsuario = int.Parse(
+                User.FindFirst("IdUsuario")!.Value
+                );
+
+                reserva.IdUsuario = idUsuario;
 
                 repo_Reserva.Alta(reserva);
 
@@ -188,7 +197,7 @@ public IActionResult Create(Reserva reserva)
 
         // DELETE - GET
 
-
+        [Authorize(Roles ="Administrador")]
         [HttpGet]
         public IActionResult Delete(int id)
         {
@@ -205,70 +214,70 @@ public IActionResult Create(Reserva reserva)
 
         // DELETE - POST
 
-
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
-[ValidateAntiForgeryToken]
-public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow)
-{
-    var reserva = repo_Reserva.ObtenerPorId(id);
-    if (reserva == null)
-    {
-        return NotFound();
-    }
-
-    // 💡 Normalizamos a la fecha pura (o 10:00 hs) para evitar que minutos de más sumen 1 día extra
-    DateTime fechaCancelacionLimpia = fechaCancelacion.Date.AddHours(10);
-
-    // Validar si se está cancelando antes de la fecha original
-    if (fechaCancelacionLimpia < reserva.FechaFin)
-    {
-        // --- CÁLCULO DE LA MULTA CORREGIDO ---
-        int duracionTotalDias = (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
-        int tiempoTranscurridoDias = (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
-        if (tiempoTranscurridoDias < 0) tiempoTranscurridoDias = 0;
-
-        int diasRestantes = (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
-        if (diasRestantes < 0) diasRestantes = 0;
-
-        decimal alquilerRestante = (decimal)diasRestantes * reserva.MontoDiario;
-        decimal multaCalculada = 0;
-
-        if (tiempoTranscurridoDias < ((double)duracionTotalDias / 2))
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow)
         {
-            // Menos de la mitad del tiempo cumplido -> 50% del restante
-            multaCalculada = alquilerRestante * 0.50m;
+            var reserva = repo_Reserva.ObtenerPorId(id);
+            if (reserva == null)
+            {
+                return NotFound();
+            }
+
+            // 💡 Normalizamos a la fecha pura (o 10:00 hs) para evitar que minutos de más sumen 1 día extra
+            DateTime fechaCancelacionLimpia = fechaCancelacion.Date.AddHours(10);
+
+            // Validar si se está cancelando antes de la fecha original
+            if (fechaCancelacionLimpia < reserva.FechaFin)
+            {
+                // --- CÁLCULO DE LA MULTA CORREGIDO ---
+                int duracionTotalDias = (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
+                int tiempoTranscurridoDias = (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
+                if (tiempoTranscurridoDias < 0) tiempoTranscurridoDias = 0;
+
+                int diasRestantes = (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
+                if (diasRestantes < 0) diasRestantes = 0;
+
+                decimal alquilerRestante = (decimal)diasRestantes * reserva.MontoDiario;
+                decimal multaCalculada = 0;
+
+                if (tiempoTranscurridoDias < ((double)duracionTotalDias / 2))
+                {
+                    // Menos de la mitad del tiempo cumplido -> 50% del restante
+                    multaCalculada = alquilerRestante * 0.50m;
+                }
+                else
+                {
+                    // Más de la mitad del tiempo cumplido -> 25% del restante
+                    multaCalculada = alquilerRestante * 0.25m;
+                }
+
+                // 2. REGLA DE NEGOCIO: Si hay multa y no se abonó, frenar la baja
+                if (multaCalculada > 0 && !pagaMultaNow)
+                {
+                    TempData["Error"] = $"No se puede finalizar. Debe abonar la multa de ${multaCalculada:N2} en el momento.";
+                    return View(reserva);
+                }
+
+                // 3. Guardar datos en la entidad
+                reserva.FechaCancelacion = fechaCancelacionLimpia;
+                reserva.Multa = multaCalculada;
+            }
+
+            try
+            {
+                repo_Reserva.Baja(id);
+                TempData["Mensaje"] = "Reserva dada de baja con éxito.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al dar de baja la reserva: " + ex.Message;
+                return View(reserva);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
-        else
-        {
-            // Más de la mitad del tiempo cumplido -> 25% del restante
-            multaCalculada = alquilerRestante * 0.25m;
-        }
-
-        // 2. REGLA DE NEGOCIO: Si hay multa y no se abonó, frenar la baja
-        if (multaCalculada > 0 && !pagaMultaNow)
-        {
-            TempData["Error"] = $"No se puede finalizar. Debe abonar la multa de ${multaCalculada:N2} en el momento.";
-            return View(reserva);
-        }
-
-        // 3. Guardar datos en la entidad
-        reserva.FechaCancelacion = fechaCancelacionLimpia;
-        reserva.Multa = multaCalculada;
-    }
-
-    try
-    {
-        repo_Reserva.Baja(id);
-        TempData["Mensaje"] = "Reserva dada de baja con éxito.";
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] = "Error al dar de baja la reserva: " + ex.Message;
-        return View(reserva);
-    }
-
-    return RedirectToAction(nameof(Index));
-}
         // EDIT - GET
 
         [HttpGet]
@@ -360,7 +369,11 @@ public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pag
             try
             {
                 // Asignamos o mantenemos el usuario (podes ajustarlo si usas autenticación)
-                reserva.IdUsuario = 1;
+               int idUsuario = int.Parse(
+                User.FindFirst("IdUsuario")!.Value
+                );
+
+                reserva.IdUsuario = idUsuario;
 
                 repo_Reserva.Modificacion(reserva);
 
@@ -380,11 +393,14 @@ public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pag
 
         // INACTIVOS
 
-
-        public IActionResult Inactivos(
-            int pagina = 1,
-            int tamPagina = 10)
+        [Authorize(Roles ="Administrador")]
+        public IActionResult Inactivos(  int pagina = 1, int tamPagina = 10)
         {
+            if (pagina < 1)
+                pagina = 1;
+
+            if (tamPagina <= 0)
+                tamPagina = 10;
             try
             {
                 var inactivos = repo_Reserva.ObtenerInactivos(pagina, tamPagina);
@@ -407,7 +423,7 @@ public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pag
 
         // REACTIVAR
 
-
+        [Authorize(Roles ="Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)

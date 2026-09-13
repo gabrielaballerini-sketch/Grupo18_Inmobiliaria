@@ -1,4 +1,4 @@
-using Grupo18_Inmobiliaria.Models;
+
 using System.Data;
 using MySqlConnector;
 

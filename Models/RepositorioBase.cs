@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+
 
 namespace Grupo18_Inmobiliaria.Models
 {

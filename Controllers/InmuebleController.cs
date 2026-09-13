@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Grupo18_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Grupo18_Inmobiliaria.Controllers
 {
+    [Authorize]
     public class InmuebleController : Controller
     {
         private readonly IRepositorioInmueble repo_Inmueble;
@@ -22,6 +24,11 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
         {
+            if (pagina < 1)
+                pagina = 1;
+
+            if (tamPagina <= 0)
+                tamPagina = 10;
             try
             {
                 var lista = repo_Inmueble.ObtenerActivos(pagina, tamPagina);
@@ -144,6 +151,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         // --- BAJA LÓGICA (DELETE) ---
 
         // GET:  Inmueble /Delete/5
+        [Authorize(Roles ="Administrador")]
         [HttpGet]
         public IActionResult Delete(int id)
         {
@@ -159,6 +167,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
         // POST: Inmueble/Delete/5
+        [Authorize(Roles ="Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -175,10 +184,15 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
+        [Authorize(Roles ="Administrador")]
         // GET: Inmueble/Inactivos
         public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
         {
+            if (pagina < 1)
+                pagina = 1;
+
+            if (tamPagina <= 0)
+                tamPagina = 10;
             try
             {
                 var inactivos = repo_Inmueble.ObtenerInactivos(pagina, tamPagina);
@@ -198,6 +212,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
         // POST: Inmueble/Reactivar/5
+        [Authorize(Roles ="Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)

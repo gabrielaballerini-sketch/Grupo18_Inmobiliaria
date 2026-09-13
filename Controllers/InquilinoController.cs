@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Grupo18_Inmobiliaria.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Grupo18_Inmobiliaria.Controllers
 {
+    [Authorize]
     public class InquilinoController : Controller
     {
         private readonly IRepositorioInquilino repo;
@@ -24,6 +26,11 @@ namespace Grupo18_Inmobiliaria.Controllers
         // GET: Inquilino/Index
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
         {
+            if (pagina < 1)
+                pagina = 1;
+
+            if (tamPagina <= 0)
+                tamPagina = 10;
             try
             {
                 var lista = repo.ObtenerActivos(pagina, tamPagina);
@@ -101,6 +108,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         // --- BAJA LÓGICA (DELETE) ---
 
         // GET: Inquilino/Delete/5
+        [Authorize(Roles ="Administrador")]
         [HttpGet]
         public IActionResult Delete(int id)
         {
@@ -118,6 +126,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
         // POST: Inquilino/Delete/5
+        [Authorize(Roles ="Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -128,11 +137,14 @@ namespace Grupo18_Inmobiliaria.Controllers
             return RedirectToAction("Index");
         }
 
-
+        [Authorize(Roles ="Administrador")]
         public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
+             {
+            if (pagina < 1)
+                pagina = 1;
 
-
-        {
+            if (tamPagina <= 0)
+                tamPagina = 10;
             try
             {
                 var inactivos = repo.ObtenerInactivos(pagina, tamPagina);
@@ -156,6 +168,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
         // POST: Inquilinos/Reactivar/5
+        [Authorize(Roles ="Administrador ")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)

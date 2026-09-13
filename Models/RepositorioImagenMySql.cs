@@ -1,5 +1,5 @@
-using MySql.Data.MySqlClient;
-using System.Data;
+using MySqlConnector;
+
 
 namespace Grupo18_Inmobiliaria.Models
 {

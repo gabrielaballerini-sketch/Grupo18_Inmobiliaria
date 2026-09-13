@@ -1,5 +1,6 @@
 
 using Grupo18_Inmobiliaria.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 using System.Globalization;
 
@@ -28,10 +29,19 @@ builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmuebleMySql>();
 builder.Services.AddScoped<IRepositorioReserva, RepositorioReservaMySql>();
 builder.Services.AddScoped<IRepositorioPago, RepositorioPagoMySql>();
 builder.Services.AddScoped<IRepositorioImagen, RepositorioImagenMySql>();
+builder.Services.AddScoped<IRepositorioUsuario,RepositorioUsuarioMySql>();
+
+builder.Services.AddAuthentication("CookieAuth").AddCookie("CookieAuth", options =>
+{
+    options.LoginPath="/Cuenta/Login";
+    options.AccessDeniedPath="/Cuenta/AccesoDenegado";
+});
+
 
 
 // construimos la aplicacion
 var app = builder.Build();
+
 
 //Si NO estoy trabajando en desarrollo.
 //Entonces configura determinadas cosas para producción.
@@ -51,7 +61,9 @@ app.UseRouting();
 
 
 //Esto tiene que ver con qué puede hacer un usuario dependiendo de sus permisos.
+app.UseAuthentication();
 app.UseAuthorization();
+
 
 
 //Esto permite manejar recursos estáticos de la aplicación.

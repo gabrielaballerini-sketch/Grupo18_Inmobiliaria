@@ -1,8 +1,8 @@
 namespace Grupo18_Inmobiliaria.Models
 {
-    public enum RoLUsuario
+    public enum RolUsuario
     {
         Empleado,
-        Administrador
+        Administrativo
     }
 }

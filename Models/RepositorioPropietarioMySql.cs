@@ -1,5 +1,5 @@
 using System.Data;
-using Grupo18_Inmobiliaria.Models;
+
 using MySqlConnector;
 
 namespace Grupo18_Inmobiliaria.Models

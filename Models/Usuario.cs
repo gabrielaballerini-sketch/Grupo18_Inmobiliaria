@@ -7,7 +7,7 @@ namespace Grupo18_Inmobiliaria.Models
         public string UserName { get; set; } = "";
 
         public string Password { get; set; } = "";
-        public RoLUsuario RolUsuario { get; set; }
+        public RolUsuario RolUsuario { get; set; }
 
         public bool Estado { get; set; } = true;
         public List<Reserva> ListaReservas { get; set; } = new List<Reserva>();
