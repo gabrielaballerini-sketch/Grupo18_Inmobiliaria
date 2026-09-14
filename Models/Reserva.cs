@@ -8,14 +8,14 @@ namespace Grupo18_Inmobiliaria.Models
         public int IdReserva { get; set; }
 
         [Required(ErrorMessage = "Debe seleccionar un inquilino.")]
-       
+
         public int IdInquilino { get; set; }
 
         public Inquilino Inquilino { get; set; } = new Inquilino();
 
         [Required(ErrorMessage = "Debe seleccionar un inmueble.")]
-    
-     
+
+
         public int IdInmueble { get; set; }
 
         public Inmueble Inmueble { get; set; } = new Inmueble();
@@ -53,7 +53,7 @@ namespace Grupo18_Inmobiliaria.Models
 
         public List<Pago> PagosEfectuados { get; set; } = new List<Pago>();
 
-        // 💡 Validaciones avanzadas para comparar fechas entre sí
+        // Validaciones avanzadas para comparar fechas entre sí
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (FechaFin <= FechaInicio)

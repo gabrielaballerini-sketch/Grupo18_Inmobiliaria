@@ -52,7 +52,8 @@
 
                             <td class="text-center">
 
-                                <form asp-action="Reactivar" asp-route-id="@propietario.IdPropietario" method="post" class="d-inline">
+                                <form asp-action="Reactivar" asp-route-id="@propietario.IdPropietario" method="post"
+                                    class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-success btn-sm;">
                                         Reactivar / Alta
@@ -62,7 +63,7 @@
 
 
 
-                                    
+
                                 </form>
 
                             </td>
@@ -73,29 +74,24 @@
 
             </table>
 
+        </div>
 
-</div>
+        <!-- Botones de Paginación -->
 
-<!-- Botones de Paginación -->
+        <div class="mt-3 text-center">
+            @if (ViewBag.PaginaActual > 1)
+            {
+                <a asp-action="Inactivos" asp-route-pagina="@(ViewBag.PaginaActual - 1)"
+                    class="btn btn-outline-primary me-2">Anterior</a>
+            }
 
-<div class="mt-3 text-center">
-    @if (ViewBag.PaginaActual > 1)
-    {
-        <a asp-action="Inactivos" asp-route-pagina="@(ViewBag.PaginaActual - 1)" class="btn btn-outline-primary me-2">Anterior</a>
+            @if (ViewBag.PaginaActual < ViewBag.TotalPaginas)
+            {
+                <a asp-action="Inactivos" asp-route-pagina="@(ViewBag.PaginaActual + 1)"
+                    class="btn btn-outline-primary">Siguiente</a>
+            }
+        </div>
+
     }
 
-    @if (ViewBag.PaginaActual < ViewBag.TotalPaginas)
-    {
-        <a asp-action="Inactivos" asp-route-pagina="@(ViewBag.PaginaActual + 1)" class="btn btn-outline-primary">Siguiente</a>
-    }
 </div>
-
-}
-
-</div>
-
-
-
-    
-
-

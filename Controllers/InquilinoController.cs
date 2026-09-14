@@ -108,7 +108,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         // --- BAJA LÓGICA (DELETE) ---
 
         // GET: Inquilino/Delete/5
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Roles ="Administrativo")]
         [HttpGet]
         public IActionResult Delete(int id)
         {
@@ -126,7 +126,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
         // POST: Inquilino/Delete/5
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Roles ="Administrativo")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -137,7 +137,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Roles ="Administrativo")]
         public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
              {
             if (pagina < 1)
@@ -168,7 +168,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
         // POST: Inquilinos/Reactivar/5
-        [Authorize(Roles ="Administrador ")]
+        [Authorize(Roles ="Administrativo")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)

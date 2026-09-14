@@ -20,46 +20,46 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-
 </head>
 
 <body>
-      @if (User.Identity?.IsAuthenticated == true)
+    @if (User.Identity?.IsAuthenticated == true)
     {
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-               
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index"> <i class="bi bi-house-door me-1"></i>
-                            Home</a>
-                        </li>
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index"> <i
+                                        class="bi bi-house-door me-1"></i>
+                                    Home</a>
+                            </li>
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
 
-                        { 
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Inquilino"
-                                   asp-action="Index"><i class="bi bi-people me-1"></i>Inquilinos</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Propietario"
-                                   asp-action="Index"><i class="bi bi-person me-1"></i>Propietario</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Reserva"
-                                   asp-action="Index"><i class="bi bi-calendar-check me-1"></i>Reserva</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdownInmuebles"
-                                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-house-door me-1"></i>Inmueble</a>
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Inquilino" asp-action="Index"><i
+                                            class="bi bi-people me-1"></i>Inquilinos</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Propietario" asp-action="Index"><i
+                                            class="bi bi-person me-1"></i>Propietario</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Reserva" asp-action="Index"><i
+                                            class="bi bi-calendar-check me-1"></i>Reserva</a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdownInmuebles"
+                                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-house-door me-1"></i>Inmueble</a>
                                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownInmuebles">
                                         <li>
                                             <a class="dropdown-item" asp-controller="Inmueble" asp-action="Index">
@@ -93,12 +93,12 @@
                                         <li>
                                             <hr class="dropdown-divider">
                                         </li>
-                                      
+
                                     </ul>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="TipoInmueble"
-                                       asp-action="Index"><i class="bi bi-building me-1"></i>Tipo de Inmueble</a>
+                                        asp-action="Index"><i class="bi bi-building me-1"></i>Tipo de Inmueble</a>
                                 </li>
                             }
 
@@ -106,8 +106,8 @@
                             {
 
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Usuario"
-                                       asp-action="Index"><i class="bi bi-person-badge me-1"></i>Usuario</a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Usuario" asp-action="Index"><i
+                                            class="bi bi-person-badge me-1"></i>Usuario</a>
                                 </li>
                             }
                         </ul>
@@ -119,12 +119,6 @@
                                     <span class="nav-link text-dark">
                                         <i class="bi bi-person-circle"></i>
                                         Hola,@User.Identity.Name
-                                    </span>
-                                </li>
-
-                                <li class="nav-item">
-                                    <span class="nav-link text-muted">
-                                        (@User.FindFirst(ClaimTypes.Role)?.Value)
                                     </span>
                                 </li>
 
@@ -143,11 +137,11 @@
 
                             </ul>
                         }
-                       
+
                     </div>
                 </div>
             </nav>
-    </header>
+        </header>
     }
     <div class="container">
         <main role="main" class="pb-3">

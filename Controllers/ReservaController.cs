@@ -2,25 +2,29 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Grupo18_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Grupo18_Inmobiliaria.Controllers
-{   
+{
     [Authorize]
     public class ReservaController : Controller
     {
         private readonly IRepositorioReserva repo_Reserva;
         private readonly IRepositorioInquilino repo_Inquilino;
         private readonly IRepositorioInmueble repo_Inmueble;
+        private readonly IRepositorioPago repo_Pago;
 
 
         public ReservaController(
             IRepositorioReserva repoReserva,
             IRepositorioInquilino repoInquilino,
-            IRepositorioInmueble repoInmueble)
+            IRepositorioInmueble repoInmueble,
+            IRepositorioPago repoPago)
         {
             this.repo_Reserva = repoReserva;
             this.repo_Inquilino = repoInquilino;
             this.repo_Inmueble = repoInmueble;
+            this.repo_Pago = repoPago;
         }
 
 
@@ -69,24 +73,24 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         // CREATE - POST
 
-[HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult Create(Reserva reserva)
-{
-    // 💡 Forzar los horarios fijos de Check-in (15:00) y Check-out (10:00)
-    reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
-    reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Reserva reserva)
+        {
+            // 💡 Forzar los horarios fijos de Check-in (15:00) y Check-out (10:00)
+            reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
+            reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
 
-    foreach (var key in ModelState.Keys
-     .Where(k =>
-         k.StartsWith("Inquilino") ||
-         k.StartsWith("Inmueble") ||
-         k.StartsWith("Usuario") ||
-         k.StartsWith("PagosEfectuados"))
-     .ToList())
-    {
-        ModelState.Remove(key);
-    }
+            foreach (var key in ModelState.Keys
+             .Where(k =>
+                 k.StartsWith("Inquilino") ||
+                 k.StartsWith("Inmueble") ||
+                 k.StartsWith("Usuario") ||
+                 k.StartsWith("PagosEfectuados"))
+             .ToList())
+            {
+                ModelState.Remove(key);
+            }
 
 
 
@@ -171,33 +175,34 @@ public IActionResult Create(Reserva reserva)
 
             try
             {
-               int idUsuario = int.Parse(
-                User.FindFirst("IdUsuario")!.Value
-                );
+                //Valida de forma segura el claim del usuario para evitar el NullReferenceException
+                var claimUsuario = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (claimUsuario == null)
+                {
+                    TempData["Error"] = "No se pudo identificar al usuario logueado. Inicie sesión nuevamente.";
+                    CargarDesplegables(reserva.IdInquilino, reserva.IdInmueble);
+                    return View(reserva);
+                }
 
-                reserva.IdUsuario = idUsuario;
+                reserva.IdUsuario = int.Parse(claimUsuario.Value);
 
                 repo_Reserva.Alta(reserva);
 
                 TempData["Mensaje"] = "Reserva creada con éxito.";
-
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al crear la reserva: " + ex.Message;
-
                 CargarDesplegables(reserva.IdInquilino, reserva.IdInmueble);
-
                 return View(reserva);
             }
         }
 
 
-
         // DELETE - GET
 
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Roles = "Administrativo")]
         [HttpGet]
         public IActionResult Delete(int id)
         {
@@ -214,10 +219,11 @@ public IActionResult Create(Reserva reserva)
 
         // DELETE - POST
 
-        [Authorize(Roles = "Administrador")]
+        // DELETE - POST
+        [Authorize(Roles = "Administrativo")] // Ajustá los roles según convenga
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow)
+        public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow, int medioPago)
         {
             var reserva = repo_Reserva.ObtenerPorId(id);
             if (reserva == null)
@@ -227,6 +233,8 @@ public IActionResult Create(Reserva reserva)
 
             // 💡 Normalizamos a la fecha pura (o 10:00 hs) para evitar que minutos de más sumen 1 día extra
             DateTime fechaCancelacionLimpia = fechaCancelacion.Date.AddHours(10);
+
+            decimal multaCalculada = 0;
 
             // Validar si se está cancelando antes de la fecha original
             if (fechaCancelacionLimpia < reserva.FechaFin)
@@ -240,7 +248,6 @@ public IActionResult Create(Reserva reserva)
                 if (diasRestantes < 0) diasRestantes = 0;
 
                 decimal alquilerRestante = (decimal)diasRestantes * reserva.MontoDiario;
-                decimal multaCalculada = 0;
 
                 if (tiempoTranscurridoDias < ((double)duracionTotalDias / 2))
                 {
@@ -260,15 +267,37 @@ public IActionResult Create(Reserva reserva)
                     return View(reserva);
                 }
 
-                // 3. Guardar datos en la entidad
+                // 3. Guardar datos de multa en la entidad reserva
                 reserva.FechaCancelacion = fechaCancelacionLimpia;
                 reserva.Multa = multaCalculada;
             }
 
             try
             {
-                repo_Reserva.Baja(id);
-                TempData["Mensaje"] = "Reserva dada de baja con éxito.";
+                // Realizamos la baja de la reserva
+                repo_Reserva.Baja(id); // O el método de actualización que uses para marcarla cancelada/dada de baja
+
+                // 4. REGISTRAR EL PAGO DE LA MULTA SI CORRESPONDE
+                if (multaCalculada > 0 && pagaMultaNow)
+                {
+                    var claimUsuario = User.FindFirst(ClaimTypes.NameIdentifier);
+                    int idUsuarioActual = claimUsuario != null ? int.Parse(claimUsuario.Value) : 0;
+
+                    var pagoMulta = new Pago
+                    {
+                        IdReserva = reserva.IdReserva,
+                        FechaPago = DateTime.Now,
+                        Importe = multaCalculada,
+                        ConceptoPago = ConceptoPago.Multa,
+                        MedioPago = (MedioPago)medioPago, // Recibe el valor del select del HTML
+                        Estado = true,
+                        IdUsuarioCreador = idUsuarioActual
+                    };
+
+                    repo_Pago.Alta(pagoMulta); // Asegurate de tener inyectado IRepositorioPago repo_Pago en el constructor
+                }
+
+                TempData["Mensaje"] = "Reserva dada de baja con éxito" + (pagaMultaNow && multaCalculada > 0 ? " y pago de multa registrado." : ".");
             }
             catch (Exception ex)
             {
@@ -278,6 +307,7 @@ public IActionResult Create(Reserva reserva)
 
             return RedirectToAction(nameof(Index));
         }
+
         // EDIT - GET
 
         [HttpGet]
@@ -307,9 +337,9 @@ public IActionResult Create(Reserva reserva)
             }
 
 
-         // Forzar horarios fijos
-              reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
-              reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
+            // Forzar horarios fijos
+            reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
+            reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
 
 
 
@@ -369,9 +399,9 @@ public IActionResult Create(Reserva reserva)
             try
             {
                 // Asignamos o mantenemos el usuario (podes ajustarlo si usas autenticación)
-               int idUsuario = int.Parse(
-                User.FindFirst("IdUsuario")!.Value
-                );
+                int idUsuario = int.Parse(
+                 User.FindFirst("IdUsuario")!.Value
+                 );
 
                 reserva.IdUsuario = idUsuario;
 
@@ -393,8 +423,8 @@ public IActionResult Create(Reserva reserva)
 
         // INACTIVOS
 
-        [Authorize(Roles ="Administrador")]
-        public IActionResult Inactivos(  int pagina = 1, int tamPagina = 10)
+        [Authorize(Roles = "Administrativo")]
+        public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
         {
             if (pagina < 1)
                 pagina = 1;
@@ -423,7 +453,7 @@ public IActionResult Create(Reserva reserva)
 
         // REACTIVAR
 
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Roles = "Administrativo")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)
@@ -594,6 +624,20 @@ public IActionResult Create(Reserva reserva)
         {
             var reserva = repo_Reserva.ObtenerPorId(id);
             if (reserva == null) return NotFound();
+            return View(reserva);
+        }
+
+        // GET: Reserva/DetalleBaja/5
+        public IActionResult DetailsBajas(int id)
+        {
+            var reserva = repo_Reserva.ObtenerPorId(id); // Debe traer el Inquilino, Inmueble y la lista de Pagos
+
+            if (reserva == null)
+            {
+                TempData["Error"] = "No se encontró la reserva solicitada.";
+                return RedirectToAction("Inactivos");
+            }
+
             return View(reserva);
         }
 

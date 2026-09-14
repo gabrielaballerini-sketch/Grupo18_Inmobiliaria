@@ -79,7 +79,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
         // POST: Pago/Anular/5
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Roles ="Administrativo")]
         [HttpPost]
         [ValidateAntiForgeryToken]
       
