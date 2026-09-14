@@ -22,19 +22,19 @@ CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 //indicamos q va haber controller y vistas
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<IRepositorioPropietario,RepositorioPropietarioMySql>();
-builder.Services.AddScoped<IRepositorioInquilino,RepositorioInquilinoMySql>();
-builder.Services.AddScoped< IRepositorio<TipoInmueble>,RepositorioTipoInmuebleMySql>();
+builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietarioMySql>();
+builder.Services.AddScoped<IRepositorioInquilino, RepositorioInquilinoMySql>();
+builder.Services.AddScoped<IRepositorio<TipoInmueble>, RepositorioTipoInmuebleMySql>();
 builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmuebleMySql>();
 builder.Services.AddScoped<IRepositorioReserva, RepositorioReservaMySql>();
 builder.Services.AddScoped<IRepositorioPago, RepositorioPagoMySql>();
 builder.Services.AddScoped<IRepositorioImagen, RepositorioImagenMySql>();
-builder.Services.AddScoped<IRepositorioUsuario,RepositorioUsuarioMySql>();
+builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioMySql>();
 
 builder.Services.AddAuthentication("CookieAuth").AddCookie("CookieAuth", options =>
 {
-    options.LoginPath="/Cuenta/Login";
-    options.AccessDeniedPath="/Cuenta/AccesoDenegado";
+    options.LoginPath = "/Cuenta/Login";
+    options.AccessDeniedPath = "/Cuenta/AccesoDenegado";
 });
 
 
@@ -56,6 +56,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
 //habilitamos rutas
 app.UseRouting();
 
