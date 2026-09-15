@@ -172,7 +172,7 @@ namespace Grupo18_Inmobiliaria.Models
 
 
 
-        // OBTENER ACTIVOS
+        // OBTENER ACTIVOS Y VIGENTES
 
 
         public IList<Reserva> ObtenerActivos(int pagina = 1, int tamPagina = 10)
@@ -198,6 +198,7 @@ namespace Grupo18_Inmobiliaria.Models
                     JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
                     WHERE r.Estado = 1
+                    AND FechaFin >= NOW()
                     LIMIT {tamPagina}
                     OFFSET {(pagina - 1) * tamPagina};
                 """;
@@ -243,12 +244,12 @@ namespace Grupo18_Inmobiliaria.Models
                 IdUsuario = reader.GetInt32(reader.GetOrdinal("IdUsuario")),
 
 
-                Multa = reader.IsDBNull(reader.GetOrdinal("Multa")) 
-                ? null 
+                Multa = reader.IsDBNull(reader.GetOrdinal("Multa"))
+                ? null
                 : reader.GetDecimal(reader.GetOrdinal("Multa")),
-                
-                 FechaCancelacion = reader.IsDBNull(reader.GetOrdinal("FechaCancelacion")) 
-                          ? null 
+
+                FechaCancelacion = reader.IsDBNull(reader.GetOrdinal("FechaCancelacion"))
+                          ? null
                           : reader.GetDateTime(reader.GetOrdinal("FechaCancelacion")),
 
 
@@ -393,33 +394,21 @@ namespace Grupo18_Inmobiliaria.Models
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = """
-                    SELECT COUNT(IdReserva)
-                    FROM Reservas
-                """;
+                // Si viene null o true, tomamos true (vigentes). Si es false, tomamos finalizadas.
+                bool esActivo = soloActivos ?? true;
+                string condicionFecha = esActivo ? "FechaFin >= NOW()" : "FechaFin < NOW()";
 
-                if (soloActivos.HasValue)
-                {
-                    sql += " WHERE Estado = @Estado";
-                }
+                string sql = $"""
+                        SELECT COUNT(IdReserva)
+                         FROM Reservas
+                            WHERE Estado = 1 AND {condicionFecha}
+                        """;
 
                 using (var command = new MySqlCommand(sql, connection))
-
-
                 {
-                    if (soloActivos.HasValue)
-                    {
-                        command.Parameters.AddWithValue("@Estado", soloActivos.Value ? 1 : 0);
-
-                    }
-
                     command.CommandType = CommandType.Text;
-
                     connection.Open();
-
                     res = Convert.ToInt32(command.ExecuteScalar());
-
-
                 }
             }
 
@@ -477,38 +466,76 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
 
-public int FinalizarAnticipadamente(int idReserva, decimal multa, DateTime fechaCancelacion)
-{
-    int res = -1;
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = @"
+        public int FinalizarAnticipadamente(int idReserva, decimal multa, DateTime fechaCancelacion)
+        {
+            int res = -1;
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"
             UPDATE Reservas
             SET Multa = @Multa,
                 FechaCancelacion = @FechaCancelacion,
                 Estado = 0
             WHERE IdReserva = @IdReserva;";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.Parameters.AddWithValue("@Multa", multa);
-            command.Parameters.AddWithValue("@FechaCancelacion", fechaCancelacion);
-            command.Parameters.AddWithValue("@IdReserva", idReserva);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Multa", multa);
+                    command.Parameters.AddWithValue("@FechaCancelacion", fechaCancelacion);
+                    command.Parameters.AddWithValue("@IdReserva", idReserva);
 
-            connection.Open();
-            res = command.ExecuteNonQuery();
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                }
+            }
+            return res;
         }
-    }
-    return res;
-}
+        // OBTENER FINALIZADAS
+        public IList<Reserva> ObtenerFinalizadas(int pagina = 1, int tamPagina = 10)
+        {
+            IList<Reserva> listaFinalizadas = new List<Reserva>();
 
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = $"""
+           SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+            r.Multa, r.FechaCancelacion,
+            r.IdInquilino, 
+            iq.Nombre AS InqNombre, 
+            iq.Apellido AS InqApellido, 
+            iq.Dni AS InqDni, 
+            iq.Telefono AS InqTelefono, 
+            iq.Email AS InqEmail,
+            r.IdInmueble, 
+            inm.Direccion AS InmDireccion, 
+            inm.Capacidad AS InmCapacidad, 
+            inm.PrecioAlquiler AS InmPrecioAlquiler
+            FROM Reservas r
+            JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
+            JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
+            WHERE r.Estado = 1
+            AND FechaFin < NOW()
+            LIMIT {tamPagina}
+            OFFSET {(pagina - 1) * tamPagina};
+        """;
 
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
 
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            listaFinalizadas.Add(MapearReserva(reader));
+                        }
+                    }
+                }
+            }
 
-
-
-
-
+            return listaFinalizadas;
+        }
 
 
 

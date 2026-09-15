@@ -483,7 +483,29 @@ namespace Grupo18_Inmobiliaria.Controllers
             return Json(new { precio = inmueble.PrecioAlquiler });
         }
 
+        public IActionResult Finalizadas(int pagina = 1, int tamPagina = 10)
+        {
+            if (pagina < 1)
+                pagina = 1;
 
+            if (tamPagina <= 0)
+                tamPagina = 10;
+            try
+            {
+                var lista = repo_Reserva.ObtenerFinalizadas(pagina, tamPagina);
+
+                int totalRegistros = repo_Reserva.ObtenerCantidad(false);
+
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                return Content("ERROR: " + ex.Message);
+            }
+        }
 
 
         // DESPLEGABLES

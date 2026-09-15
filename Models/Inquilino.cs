@@ -21,6 +21,8 @@ namespace Grupo18_Inmobiliaria.Models
         ErrorMessage = "El telefono puede tener entre 10 y 15 digitos ")]
         public string Telefono { get; set; } = "";
         [Required, EmailAddress]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+         ErrorMessage = "El formato del correo electrónico no es válido (ejemplo: usuario@dominio.com).")]
         public string Email { get; set; } = "";
 
         public bool Estado { get; set; } = true;
