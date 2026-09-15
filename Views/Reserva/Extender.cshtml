@@ -1,0 +1,110 @@
+@model Grupo18_Inmobiliaria.Models.Reserva
+
+@{
+    ViewData["Title"] = "Extender Reserva";
+}
+
+<div class="container mt-4">
+
+    <h1>Extender Reserva</h1>
+
+    <div class="alert alert-info">
+
+        <strong>Reserva original:</strong>
+        N° @Model.IdReserva
+
+        <br />
+
+        <strong>Inquilino:</strong>
+        @Model.Inquilino.Nombre @Model.Inquilino.Apellido
+
+        <br />
+
+        <strong>Inmueble:</strong>
+        @Model.Inmueble.Direccion
+
+        <br />
+
+        <strong>Fecha de finalización original:</strong>
+        @Model.FechaFin.ToString("dd/MM/yyyy HH:mm")
+    </div>
+
+
+    <form asp-action="Extender" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="id"
+               value="@Model.IdReserva" />
+
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Nueva fecha de finalización
+            </label>
+
+            <input type="date"
+                   name="fechaFin"
+                   class="form-control"
+                   value="@Model.FechaFin.ToString("yyyy-MM-dd")" />
+
+            <span class="text-danger"
+                  asp-validation-for="FechaFin">
+            </span>
+
+        </div>
+
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Nuevo monto diario
+            </label>
+
+            <input type="number"
+                   name="montoDiario"
+                   class="form-control"
+                   step="0.01"
+                   min="0.01"
+                   value="@Model.MontoDiario" />
+
+            <span class="text-danger">
+                @Html.ValidationMessage("montoDiario")
+            </span>
+
+        </div>
+
+
+        <div class="alert alert-secondary">
+
+            <strong>La nueva reserva comenzará automáticamente el:</strong>
+
+            @Model.FechaFin.Date.AddHours(15)
+                .ToString("dd/MM/yyyy HH:mm")
+
+        </div>
+
+
+        <button type="submit"
+                class="btn btn-success">
+            Confirmar extensión
+        </button>
+
+
+        <a asp-action="Details"
+           asp-route-id="@Model.IdReserva"
+           class="btn btn-secondary">
+            Cancelar
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -44,9 +44,19 @@ namespace Grupo18_Inmobiliaria.Models
         [DataType(DataType.DateTime)]
         public DateTime? FechaCancelacion { get; set; }
 
+        // Usuario que realizó la finalización anticipada.
+        // Es distinto del usuario que creó la reserva.
+        public int? IdUsuarioCancelacion { get; set; }
+
+        public Usuario? UsuarioCancelacion { get; set; }
+
+
+
+
+
         public bool Estado { get; set; } = true;
 
-        [Required(ErrorMessage = "El usuario que registra la reserva es obligatorio.")]
+        
         public int IdUsuario { get; set; }
 
         public Usuario Usuario { get; set; } = new Usuario();

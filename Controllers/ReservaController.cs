@@ -219,93 +219,33 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         // DELETE - POST
 
-        // DELETE - POST
-        [Authorize(Roles = "Administrativo")] // Ajustá los roles según convenga
+
+        [Authorize(Roles = "Administrativo")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id, DateTime fechaCancelacion, bool pagaMultaNow, int medioPago)
+        public IActionResult DeleteConfirmed(int id)
         {
             var reserva = repo_Reserva.ObtenerPorId(id);
+
             if (reserva == null)
             {
                 return NotFound();
             }
 
-            // 💡 Normalizamos a la fecha pura (o 10:00 hs) para evitar que minutos de más sumen 1 día extra
-            DateTime fechaCancelacionLimpia = fechaCancelacion.Date.AddHours(10);
-
-            decimal multaCalculada = 0;
-
-            // Validar si se está cancelando antes de la fecha original
-            if (fechaCancelacionLimpia < reserva.FechaFin)
-            {
-                // --- CÁLCULO DE LA MULTA CORREGIDO ---
-                int duracionTotalDias = (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
-                int tiempoTranscurridoDias = (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
-                if (tiempoTranscurridoDias < 0) tiempoTranscurridoDias = 0;
-
-                int diasRestantes = (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
-                if (diasRestantes < 0) diasRestantes = 0;
-
-                decimal alquilerRestante = (decimal)diasRestantes * reserva.MontoDiario;
-
-                if (tiempoTranscurridoDias < ((double)duracionTotalDias / 2))
-                {
-                    // Menos de la mitad del tiempo cumplido -> 50% del restante
-                    multaCalculada = alquilerRestante * 0.50m;
-                }
-                else
-                {
-                    // Más de la mitad del tiempo cumplido -> 25% del restante
-                    multaCalculada = alquilerRestante * 0.25m;
-                }
-
-                // 2. REGLA DE NEGOCIO: Si hay multa y no se abonó, frenar la baja
-                if (multaCalculada > 0 && !pagaMultaNow)
-                {
-                    TempData["Error"] = $"No se puede finalizar. Debe abonar la multa de ${multaCalculada:N2} en el momento.";
-                    return View(reserva);
-                }
-
-                // 3. Guardar datos de multa en la entidad reserva
-                reserva.FechaCancelacion = fechaCancelacionLimpia;
-                reserva.Multa = multaCalculada;
-            }
-
             try
             {
-                // Realizamos la baja de la reserva
-                repo_Reserva.Baja(id); // O el método de actualización que uses para marcarla cancelada/dada de baja
+                repo_Reserva.Baja(id);
 
-                // 4. REGISTRAR EL PAGO DE LA MULTA SI CORRESPONDE
-                if (multaCalculada > 0 && pagaMultaNow)
-                {
-                    var claimUsuario = User.FindFirst(ClaimTypes.NameIdentifier);
-                    int idUsuarioActual = claimUsuario != null ? int.Parse(claimUsuario.Value) : 0;
+                TempData["Mensaje"] = "Reserva dada de baja con éxito.";
 
-                    var pagoMulta = new Pago
-                    {
-                        IdReserva = reserva.IdReserva,
-                        FechaPago = DateTime.Now,
-                        Importe = multaCalculada,
-                        ConceptoPago = ConceptoPago.Multa,
-                        MedioPago = (MedioPago)medioPago, // Recibe el valor del select del HTML
-                        Estado = true,
-                        IdUsuarioCreador = idUsuarioActual
-                    };
-
-                    repo_Pago.Alta(pagoMulta); // Asegurate de tener inyectado IRepositorioPago repo_Pago en el constructor
-                }
-
-                TempData["Mensaje"] = "Reserva dada de baja con éxito" + (pagaMultaNow && multaCalculada > 0 ? " y pago de multa registrado." : ".");
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al dar de baja la reserva: " + ex.Message;
-                return View(reserva);
-            }
 
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // EDIT - GET
@@ -662,6 +602,473 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return View(reserva);
         }
+
+
+// GET: Reservas/Extender/5
+[HttpGet]
+public IActionResult Extender(int id)
+{
+    var reserva = repo_Reserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+    if (!reserva.Estado)
+    {
+        TempData["Error"] = "No se puede extender una reserva que está dada de baja.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // Opcional: Validar que no se extienda una reserva que ya finalizó en el pasado
+    if (reserva.FechaFin < DateTime.Now)
+    {
+        TempData["Error"] = "No se puede extender una reserva cuya fecha de fin ya transcurrió.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    return View(reserva);
+}
+
+
+
+
+
+        [HttpPost]
+
+        [ValidateAntiForgeryToken]
+        public IActionResult Extender(
+            int id,
+            DateTime fechaFin,
+            decimal montoDiario)
+        {
+            // Buscamos la reserva ORIGINAL.
+            var reservaOriginal = repo_Reserva.ObtenerPorId(id);
+
+            if (reservaOriginal == null)
+            {
+                return NotFound();
+            }
+
+            if (!reservaOriginal.Estado)
+            {
+                TempData["Error"] =
+                    "No se puede extender una reserva que está dada de baja.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+
+
+            // VALIDAR MONTO
+
+
+            if (montoDiario <= 0)
+            {
+                ModelState.AddModelError(
+                    "montoDiario",
+                    "El monto diario debe ser mayor a 0.");
+            }
+
+
+            // NUEVA FECHA DE INICIO
+
+
+            // La nueva reserva comienza cuando
+            // termina la reserva original.
+
+            DateTime nuevaFechaInicio =
+                reservaOriginal.FechaFin.Date.AddHours(15);
+
+
+
+            // NUEVA FECHA DE FIN
+
+
+            DateTime nuevaFechaFin =
+                fechaFin.Date.AddHours(10);
+
+
+            if (nuevaFechaFin <= nuevaFechaInicio)
+            {
+                ModelState.AddModelError(
+                    "fechaFin",
+                    "La nueva fecha de finalización debe ser posterior a la fecha de inicio.");
+            }
+
+
+
+            // VERIFICAR DISPONIBILIDAD
+
+
+            if (nuevaFechaFin > nuevaFechaInicio)
+            {
+                bool existeReserva =
+                    repo_Reserva.ExisteReservaEnFechas(
+                        reservaOriginal.IdInmueble,
+                        nuevaFechaInicio,
+                        nuevaFechaFin);
+
+                if (existeReserva)
+                {
+                    ModelState.AddModelError(
+                        "fechaFin",
+                        "El inmueble ya está reservado durante el período de extensión.");
+                }
+            }
+
+
+            // SI HAY ERRORES
+
+
+            if (!ModelState.IsValid)
+            {
+                reservaOriginal.MontoDiario = montoDiario;
+                reservaOriginal.FechaInicio = nuevaFechaInicio;
+                reservaOriginal.FechaFin = nuevaFechaFin;
+
+                return View(reservaOriginal);
+            }
+
+
+
+            // USUARIO LOGUEADO
+
+
+            var claimUsuario =
+                User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claimUsuario == null)
+            {
+                TempData["Error"] =
+                    "No se pudo identificar al usuario logueado.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            int idUsuario = int.Parse(claimUsuario.Value);
+
+
+
+            // CREAR NUEVA RESERVA
+
+
+            var nuevaReserva = new Reserva
+            {
+                IdInquilino = reservaOriginal.IdInquilino,
+
+                IdInmueble = reservaOriginal.IdInmueble,
+
+                MontoDiario = montoDiario,
+
+                FechaInicio = nuevaFechaInicio,
+
+                FechaFin = nuevaFechaFin,
+
+                Estado = true,
+
+                IdUsuario = idUsuario
+            };
+
+
+
+            // GUARDAR
+
+
+            try
+            {
+                repo_Reserva.Alta(nuevaReserva);
+
+                TempData["Mensaje"] =
+                    $"Reserva extendida correctamente. " +
+                    $"Se creó la nueva reserva N° {nuevaReserva.IdReserva}.";
+
+                return RedirectToAction(nameof(Details),
+                    new { id = nuevaReserva.IdReserva });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Error al extender la reserva: " + ex.Message;
+
+                return View(reservaOriginal);
+            }
+        }
+
+
+        // FINALIZACION ANTICIPADA
+
+        [HttpGet]
+public IActionResult Finalizar(int id)
+{
+    var reserva = repo_Reserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+    if (!reserva.Estado)
+    {
+        TempData["Error"] =
+            "No se puede finalizar una reserva que ya está dada de baja.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    return View(reserva);
+}
+
+
+        // FINALIZACION ANTICIPADA
+
+        [HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult Finalizar(
+    int id,
+    DateTime fechaFinalizacion,
+    bool pagaMultaNow,
+    int medioPago)
+{
+
+    // 1. BUSCAR LA RESERVA
+ 
+    var reserva = repo_Reserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+   
+    // 2. VERIFICAR QUE ESTÉ ACTIVA
+
+
+    if (!reserva.Estado)
+    {
+        TempData["Error"] =
+            "La reserva ya se encuentra dada de baja.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+
+    // 3. NORMALIZAR FECHA DE FINALIZACIÓN
+
+
+    DateTime fechaCancelacionLimpia =
+        fechaFinalizacion.Date.AddHours(10);
+
+
+
+    // 4. VALIDAR FECHA
+   
+
+    if (fechaCancelacionLimpia <= reserva.FechaInicio)
+    {
+        ModelState.AddModelError(
+            "fechaFinalizacion",
+            "La fecha de finalización debe ser posterior a la fecha de inicio.");
+    }
+
+    if (fechaCancelacionLimpia >= reserva.FechaFin)
+    {
+        ModelState.AddModelError(
+            "fechaFinalizacion",
+            "La fecha indicada no corresponde a una finalización anticipada. " +
+            "Debe ser anterior a la fecha original de finalización.");
+    }
+
+
+
+    // 5. CALCULAR MULTA
+   
+
+    decimal multaCalculada = 0;
+
+    if (ModelState.IsValid)
+    {
+        int duracionTotalDias =
+            (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
+
+        int tiempoTranscurridoDias =
+            (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
+
+        if (tiempoTranscurridoDias < 0)
+        {
+            tiempoTranscurridoDias = 0;
+        }
+
+        int diasRestantes =
+            (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
+
+        if (diasRestantes < 0)
+        {
+            diasRestantes = 0;
+        }
+
+        decimal alquilerRestante =
+            diasRestantes * reserva.MontoDiario;
+
+
+        // Menos de la mitad del tiempo cumplido
+        // → 50% del alquiler restante
+
+        if (tiempoTranscurridoDias <
+            ((double)duracionTotalDias / 2))
+        {
+            multaCalculada =
+                alquilerRestante * 0.50m;
+        }
+        else
+        {
+            // Mitad o más del tiempo cumplido
+            // → 25% del alquiler restante
+
+            multaCalculada =
+                alquilerRestante * 0.25m;
+        }
+    }
+
+
+   
+    // 6. SI HAY ERRORES, VOLVER A LA VISTA
+    
+
+    if (!ModelState.IsValid)
+    {
+        reserva.Multa = multaCalculada;
+        reserva.FechaCancelacion = fechaCancelacionLimpia;
+
+        return View(reserva);
+    }
+
+
+   
+    // 7. OBTENER USUARIO LOGUEADO
+   
+
+    var claimUsuario =
+        User.FindFirst(ClaimTypes.NameIdentifier);
+
+    if (claimUsuario == null)
+    {
+        TempData["Error"] =
+            "No se pudo identificar al usuario logueado. " +
+            "Inicie sesión nuevamente.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    int idUsuarioCancelacion;
+
+    if (!int.TryParse(
+        claimUsuario.Value,
+        out idUsuarioCancelacion))
+    {
+        TempData["Error"] =
+            "El usuario logueado no tiene un identificador válido.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+
+    // 8. SI HAY MULTA, DEBE PAGARSE
+
+
+    if (multaCalculada > 0 && !pagaMultaNow)
+    {
+        TempData["Error"] =
+            $"No se puede finalizar la reserva. " +
+            $"Debe abonar la multa de ${multaCalculada:N2}.";
+
+        reserva.Multa = multaCalculada;
+        reserva.FechaCancelacion = fechaCancelacionLimpia;
+
+        return View(reserva);
+    }
+
+
+   
+    // 9. GUARDAR FINALIZACIÓN
+  
+
+    try
+    {
+        repo_Reserva.FinalizarAnticipadamente(
+            id,
+            multaCalculada,
+            fechaCancelacionLimpia,
+            idUsuarioCancelacion);
+
+
+   
+        // 10. REGISTRAR PAGO DE MULTA
+   
+
+        if (multaCalculada > 0 && pagaMultaNow)
+        {
+            var pagoMulta = new Pago
+            {
+                IdReserva = reserva.IdReserva,
+                FechaPago = DateTime.Now,
+                Importe = multaCalculada,
+                ConceptoPago = ConceptoPago.Multa,
+                MedioPago = (MedioPago)medioPago,
+                Estado = true,
+                IdUsuarioCreador = idUsuarioCancelacion
+            };
+
+            repo_Pago.Alta(pagoMulta);
+        }
+
+
+    
+        // 11. MENSAJE
+ 
+
+        if (multaCalculada > 0)
+        {
+            TempData["Mensaje"] =
+                $"Reserva finalizada correctamente. " +
+                $"Se registró el pago de la multa de ${multaCalculada:N2}.";
+        }
+        else
+        {
+            TempData["Mensaje"] =
+                "Reserva finalizada correctamente.";
+        }
+
+        return RedirectToAction(
+            nameof(Details),
+            new { id = reserva.IdReserva });
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] =
+            "Error al finalizar la reserva: " + ex.Message;
+
+        reserva.Multa = multaCalculada;
+        reserva.FechaCancelacion = fechaCancelacionLimpia;
+
+        return View(reserva);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

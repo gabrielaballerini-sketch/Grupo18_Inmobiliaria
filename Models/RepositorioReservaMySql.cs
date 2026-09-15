@@ -1,4 +1,3 @@
-
 using System.Data;
 using MySqlConnector;
 
@@ -8,13 +7,9 @@ namespace Grupo18_Inmobiliaria.Models
     {
         public RepositorioReservaMySql(IConfiguration configuration) : base(configuration)
         {
-
         }
 
-
         // ALTA
-
-
         public int Alta(Reserva reserva)
         {
             int res = -1;
@@ -49,42 +44,23 @@ namespace Grupo18_Inmobiliaria.Models
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
-
                     command.Parameters.AddWithValue("@MontoDiario", reserva.MontoDiario);
-
                     command.Parameters.AddWithValue("@FechaInicio", reserva.FechaInicio);
-
                     command.Parameters.AddWithValue("@FechaFin", reserva.FechaFin);
-
-
-
                     command.Parameters.AddWithValue("@IdInquilino", reserva.IdInquilino);
-
                     command.Parameters.AddWithValue("@IdInmueble", reserva.IdInmueble);
-
                     command.Parameters.AddWithValue("@IdUsuario", reserva.IdUsuario);
 
                     connection.Open();
-
-
-
-
-
                     res = Convert.ToInt32(command.ExecuteScalar());
-
                     reserva.IdReserva = res;
-
-
                 }
             }
 
             return res;
         }
 
-
         // BAJA LOGICA
-
-
         public int Baja(int id)
         {
             int res = -1;
@@ -94,13 +70,12 @@ namespace Grupo18_Inmobiliaria.Models
                 string sql = """
                     UPDATE Reservas
                     SET Estado = 0
-                    WHERE IdReserva = @IdReserva
+                    WHERE IdReserva = @IdReserva;
                 """;
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
-
                     command.Parameters.AddWithValue("@IdReserva", id);
 
                     connection.Open();
@@ -111,17 +86,20 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
+        // MODIFICACION
         public int Modificacion(Reserva reserva)
         {
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"UPDATE reservas 
-                       SET FechaInicio = @FechaInicio, 
-                           FechaFin = @FechaFin, 
-                           IdInmueble = @IdInmueble, 
-                           IdInquilino = @IdInquilino 
-                       WHERE IdReserva = @IdReserva;";
+                string sql = """
+                    UPDATE Reservas 
+                    SET FechaInicio = @FechaInicio, 
+                        FechaFin = @FechaFin, 
+                        IdInmueble = @IdInmueble, 
+                        IdInquilino = @IdInquilino 
+                    WHERE IdReserva = @IdReserva;
+                """;
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -139,12 +117,7 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-
-
-
-
         // REACTIVAR
-
         public int Reactivar(int id)
         {
             int res = -1;
@@ -160,8 +133,8 @@ namespace Grupo18_Inmobiliaria.Models
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
-
                     command.Parameters.AddWithValue("@IdReserva", id);
+
                     connection.Open();
                     res = command.ExecuteNonQuery();
                 }
@@ -170,43 +143,39 @@ namespace Grupo18_Inmobiliaria.Models
             return res;
         }
 
-
-
         // OBTENER ACTIVOS Y VIGENTES
-
-
         public IList<Reserva> ObtenerActivos(int pagina = 1, int tamPagina = 10)
         {
             IList<Reserva> listaActivos = new List<Reserva>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string query = $"""
-                   SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
-                    r.Multa, r.FechaCancelacion,
-                    r.IdInquilino, 
-                    iq.Nombre AS InqNombre, 
-                    iq.Apellido AS InqApellido, 
-                    iq.Dni AS InqDni, 
-                    iq.Telefono AS InqTelefono, 
-                     iq.Email AS InqEmail,
-                     r.IdInmueble, 
-                    inm.Direccion AS InmDireccion, 
-                    inm.Capacidad AS InmCapacidad, 
-                     inm.PrecioAlquiler AS InmPrecioAlquiler
+                string query = """
+                    SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                           r.Multa, r.FechaCancelacion, r.IdUsuarioCancelacion, u.UserName,
+                           r.IdInquilino, 
+                           iq.Nombre AS InqNombre, 
+                           iq.Apellido AS InqApellido, 
+                           iq.Dni AS InqDni, 
+                           iq.Telefono AS InqTelefono, 
+                           iq.Email AS InqEmail,
+                           r.IdInmueble, 
+                           inm.Direccion AS InmDireccion, 
+                           inm.Capacidad AS InmCapacidad, 
+                           inm.PrecioAlquiler AS InmPrecioAlquiler
                     FROM Reservas r
                     JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
-                    WHERE r.Estado = 1
-                    AND FechaFin >= NOW()
-                    LIMIT {tamPagina}
-                    OFFSET {(pagina - 1) * tamPagina};
+                    LEFT JOIN usuarios u ON r.IdUsuarioCancelacion = u.IdUsuario
+                    WHERE r.Estado = 1 AND r.FechaFin >= NOW()
+                    LIMIT @TamPagina OFFSET @Offset;
                 """;
 
                 using (var command = new MySqlCommand(query, connection))
-
                 {
                     command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@TamPagina", tamPagina);
+                    command.Parameters.AddWithValue("@Offset", (pagina - 1) * tamPagina);
 
                     connection.Open();
 
@@ -214,9 +183,7 @@ namespace Grupo18_Inmobiliaria.Models
                     {
                         while (reader.Read())
                         {
-                            listaActivos.Add(MapearReserva(reader)
-
-                            );
+                            listaActivos.Add(MapearReserva(reader));
                         }
                     }
                 }
@@ -225,11 +192,7 @@ namespace Grupo18_Inmobiliaria.Models
             return listaActivos;
         }
 
-
-
         // MAPEAR RESERVA
-
-
         private Reserva MapearReserva(MySqlDataReader reader)
         {
             var reserva = new Reserva
@@ -243,15 +206,21 @@ namespace Grupo18_Inmobiliaria.Models
                 IdInmueble = reader.GetInt32(reader.GetOrdinal("IdInmueble")),
                 IdUsuario = reader.GetInt32(reader.GetOrdinal("IdUsuario")),
 
-
                 Multa = reader.IsDBNull(reader.GetOrdinal("Multa"))
-                ? null
-                : reader.GetDecimal(reader.GetOrdinal("Multa")),
+                    ? null
+                    : reader.GetDecimal(reader.GetOrdinal("Multa")),
 
                 FechaCancelacion = reader.IsDBNull(reader.GetOrdinal("FechaCancelacion"))
-                          ? null
-                          : reader.GetDateTime(reader.GetOrdinal("FechaCancelacion")),
+                    ? null
+                    : reader.GetDateTime(reader.GetOrdinal("FechaCancelacion")),
 
+                UsuarioCancelacion = reader.IsDBNull(reader.GetOrdinal("IdUsuarioCancelacion"))
+                    ? null
+                    : new Usuario
+                    {
+                        IdUsuario = reader.GetInt32(reader.GetOrdinal("IdUsuarioCancelacion")),
+                        UserName = reader.IsDBNull(reader.GetOrdinal("UserName")) ? "" : reader.GetString(reader.GetOrdinal("UserName"))
+                    },
 
                 Inquilino = new Inquilino
                 {
@@ -262,7 +231,6 @@ namespace Grupo18_Inmobiliaria.Models
                     Telefono = reader.IsDBNull(reader.GetOrdinal("InqTelefono")) ? "" : reader.GetString(reader.GetOrdinal("InqTelefono")),
                     Email = reader.IsDBNull(reader.GetOrdinal("InqEmail")) ? "" : reader.GetString(reader.GetOrdinal("InqEmail"))
                 },
-
 
                 Inmueble = new Inmueble
                 {
@@ -276,43 +244,39 @@ namespace Grupo18_Inmobiliaria.Models
             return reserva;
         }
 
-
-
         // OBTENER INACTIVOS
-
-
-        public IList<Reserva> ObtenerInactivos(
-            int pagina = 1,
-            int tamPagina = 10)
+        public IList<Reserva> ObtenerInactivos(int pagina = 1, int tamPagina = 10)
         {
             IList<Reserva> listaInactivos = new List<Reserva>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string query = $"""
+                string query = """
                     SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
-                    r.Multa, r.FechaCancelacion,
-                    r.IdInquilino, 
-                    iq.Nombre AS InqNombre, 
-                    iq.Apellido AS InqApellido, 
-                    iq.Dni AS InqDni, 
-                    iq.Telefono AS InqTelefono, 
-                     iq.Email AS InqEmail,
-                     r.IdInmueble, 
-                    inm.Direccion AS InmDireccion, 
-                    inm.Capacidad AS InmCapacidad, 
-                     inm.PrecioAlquiler AS InmPrecioAlquiler
+                           r.Multa, r.FechaCancelacion, r.IdUsuarioCancelacion, u.UserName,
+                           r.IdInquilino, 
+                           iq.Nombre AS InqNombre, 
+                           iq.Apellido AS InqApellido, 
+                           iq.Dni AS InqDni, 
+                           iq.Telefono AS InqTelefono, 
+                           iq.Email AS InqEmail,
+                           r.IdInmueble, 
+                           inm.Direccion AS InmDireccion, 
+                           inm.Capacidad AS InmCapacidad, 
+                           inm.PrecioAlquiler AS InmPrecioAlquiler
                     FROM Reservas r
-                     JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
+                    JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
+                    LEFT JOIN usuarios u ON r.IdUsuarioCancelacion = u.IdUsuario
                     WHERE r.Estado = 0
-                    LIMIT {tamPagina}
-                    OFFSET {(pagina - 1) * tamPagina};
+                    LIMIT @TamPagina OFFSET @Offset;
                 """;
 
                 using (var command = new MySqlCommand(query, connection))
                 {
                     command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@TamPagina", tamPagina);
+                    command.Parameters.AddWithValue("@Offset", (pagina - 1) * tamPagina);
 
                     connection.Open();
 
@@ -321,8 +285,6 @@ namespace Grupo18_Inmobiliaria.Models
                         while (reader.Read())
                         {
                             listaInactivos.Add(MapearReserva(reader));
-
-
                         }
                     }
                 }
@@ -331,11 +293,7 @@ namespace Grupo18_Inmobiliaria.Models
             return listaInactivos;
         }
 
-
-
         // OBTENER POR ID
-
-
         public Reserva ObtenerPorId(int id)
         {
             Reserva? reserva = null;
@@ -344,27 +302,25 @@ namespace Grupo18_Inmobiliaria.Models
             {
                 string query = """
                     SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
-                    r.Multa, r.FechaCancelacion,
-                    r.IdInquilino, 
-                    iq.Nombre AS InqNombre, 
-                    iq.Apellido AS InqApellido, 
-                    iq.Dni AS InqDni, 
-                    iq.Telefono AS InqTelefono, 
-                     iq.Email AS InqEmail,
-                     r.IdInmueble, 
-                    inm.Direccion AS InmDireccion, 
-                    inm.Capacidad AS InmCapacidad, 
-                     inm.PrecioAlquiler AS InmPrecioAlquiler
+                           r.Multa, r.FechaCancelacion, r.IdUsuarioCancelacion, u.UserName,
+                           r.IdInquilino, 
+                           iq.Nombre AS InqNombre, 
+                           iq.Apellido AS InqApellido, 
+                           iq.Dni AS InqDni, 
+                           iq.Telefono AS InqTelefono, 
+                           iq.Email AS InqEmail,
+                           r.IdInmueble, 
+                           inm.Direccion AS InmDireccion, 
+                           inm.Capacidad AS InmCapacidad, 
+                           inm.PrecioAlquiler AS InmPrecioAlquiler
                     FROM Reservas r
-                     JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
+                    JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
                     JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
-
+                    LEFT JOIN usuarios u ON r.IdUsuarioCancelacion = u.IdUsuario
                     WHERE r.IdReserva = @IdReserva;
                 """;
 
-                using (var command = new MySqlCommand(
-                    query,
-                    connection))
+                using (var command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@IdReserva", id);
 
@@ -383,26 +339,21 @@ namespace Grupo18_Inmobiliaria.Models
             return reserva;
         }
 
-
-
         // OBTENER CANTIDAD
-
-
         public int ObtenerCantidad(bool? soloActivos = true)
         {
             int res = 0;
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                // Si viene null o true, tomamos true (vigentes). Si es false, tomamos finalizadas.
                 bool esActivo = soloActivos ?? true;
                 string condicionFecha = esActivo ? "FechaFin >= NOW()" : "FechaFin < NOW()";
 
                 string sql = $"""
-                        SELECT COUNT(IdReserva)
-                         FROM Reservas
-                            WHERE Estado = 1 AND {condicionFecha}
-                        """;
+                    SELECT COUNT(IdReserva)
+                    FROM Reservas
+                    WHERE Estado = 1 AND {condicionFecha};
+                """;
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -416,7 +367,6 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
         // VERIFICAR SI EXISTE UNA RESERVA EN UN PERIODO
-
         public bool ExisteReservaEnFechas(int idInmueble, DateTime fechaInicio, DateTime fechaFin, int? idReservaExcluir = null)
         {
             bool existe = false;
@@ -424,29 +374,24 @@ namespace Grupo18_Inmobiliaria.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = """
-            SELECT COUNT(*)
-            FROM Reservas
-            WHERE IdInmueble = @IdInmueble
-            AND Estado = 1
-            AND FechaInicio < @FechaFin
-            AND FechaFin > @FechaInicio
-        """;
+                    SELECT COUNT(*)
+                    FROM Reservas
+                    WHERE IdInmueble = @IdInmueble
+                    AND Estado = 1
+                    AND FechaInicio < @FechaFin
+                    AND FechaFin > @FechaInicio
+                """;
 
-                // Si estamos editando una reserva,
-                // excluimos la propia reserva de la búsqueda.
                 if (idReservaExcluir.HasValue)
                 {
-                    sql += " AND IdReserva <> @IdReservaExcluir";
+                    sql += " AND IdReserva <> @IdReservaExcluir;";
                 }
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
-
                     command.Parameters.AddWithValue("@IdInmueble", idInmueble);
-
                     command.Parameters.AddWithValue("@FechaInicio", fechaInicio);
-
                     command.Parameters.AddWithValue("@FechaFin", fechaFin);
 
                     if (idReservaExcluir.HasValue)
@@ -455,9 +400,7 @@ namespace Grupo18_Inmobiliaria.Models
                     }
 
                     connection.Open();
-
                     int cantidad = Convert.ToInt32(command.ExecuteScalar());
-
                     existe = cantidad > 0;
                 }
             }
@@ -465,23 +408,26 @@ namespace Grupo18_Inmobiliaria.Models
             return existe;
         }
 
-
-        public int FinalizarAnticipadamente(int idReserva, decimal multa, DateTime fechaCancelacion)
+        // FINALIZAR ANTICIPADAMENTE
+        public int FinalizarAnticipadamente(int idReserva, decimal multa, DateTime fechaCancelacion, int idUsuarioCancelacion)
         {
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
-            UPDATE Reservas
-            SET Multa = @Multa,
-                FechaCancelacion = @FechaCancelacion,
-                Estado = 0
-            WHERE IdReserva = @IdReserva;";
+                string sql = """
+                    UPDATE Reservas
+                    SET Multa = @Multa,
+                        FechaCancelacion = @FechaCancelacion,
+                        IdUsuarioCancelacion = @IdUsuarioCancelacion,
+                        Estado = 0
+                    WHERE IdReserva = @IdReserva;
+                """;
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@Multa", multa);
                     command.Parameters.AddWithValue("@FechaCancelacion", fechaCancelacion);
+                    command.Parameters.AddWithValue("@IdUsuarioCancelacion", idUsuarioCancelacion);
                     command.Parameters.AddWithValue("@IdReserva", idReserva);
 
                     connection.Open();
@@ -490,6 +436,7 @@ namespace Grupo18_Inmobiliaria.Models
             }
             return res;
         }
+
         // OBTENER FINALIZADAS
         public IList<Reserva> ObtenerFinalizadas(int pagina = 1, int tamPagina = 10)
         {
@@ -497,31 +444,33 @@ namespace Grupo18_Inmobiliaria.Models
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string query = $"""
-           SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
-            r.Multa, r.FechaCancelacion,
-            r.IdInquilino, 
-            iq.Nombre AS InqNombre, 
-            iq.Apellido AS InqApellido, 
-            iq.Dni AS InqDni, 
-            iq.Telefono AS InqTelefono, 
-            iq.Email AS InqEmail,
-            r.IdInmueble, 
-            inm.Direccion AS InmDireccion, 
-            inm.Capacidad AS InmCapacidad, 
-            inm.PrecioAlquiler AS InmPrecioAlquiler
-            FROM Reservas r
-            JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
-            JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
-            WHERE r.Estado = 1
-            AND FechaFin < NOW()
-            LIMIT {tamPagina}
-            OFFSET {(pagina - 1) * tamPagina};
-        """;
+                string query = """
+                    SELECT r.IdReserva, r.IdUsuario, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                           r.Multa, r.FechaCancelacion, r.IdUsuarioCancelacion, u.UserName,
+                           r.IdInquilino, 
+                           iq.Nombre AS InqNombre, 
+                           iq.Apellido AS InqApellido, 
+                           iq.Dni AS InqDni, 
+                           iq.Telefono AS InqTelefono, 
+                           iq.Email AS InqEmail,
+                           r.IdInmueble, 
+                           inm.Direccion AS InmDireccion, 
+                           inm.Capacidad AS InmCapacidad, 
+                           inm.PrecioAlquiler AS InmPrecioAlquiler
+                    FROM Reservas r
+                    JOIN inquilinos iq ON r.IdInquilino = iq.IdInquilino
+                    JOIN inmuebles inm ON r.IdInmueble = inm.IdInmueble
+                    LEFT JOIN usuarios u ON r.IdUsuarioCancelacion = u.IdUsuario
+                    WHERE r.Estado = 1 AND r.FechaFin < NOW()
+                    LIMIT @TamPagina OFFSET @Offset;
+                """;
 
                 using (var command = new MySqlCommand(query, connection))
                 {
                     command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@TamPagina", tamPagina);
+                    command.Parameters.AddWithValue("@Offset", (pagina - 1) * tamPagina);
+
                     connection.Open();
 
                     using (var reader = command.ExecuteReader())
@@ -536,10 +485,5 @@ namespace Grupo18_Inmobiliaria.Models
 
             return listaFinalizadas;
         }
-
-
-
     }
 }
-
-
