@@ -3,11 +3,11 @@
 @{
     ViewData["Title"] = "Finalizar Reserva Anticipadamente";
 
-    var fechaMinima = Model.FechaInicio.Date
+    string fechaMinima = Model.FechaInicio.Date
     .AddDays(1)
     .ToString("yyyy-MM-dd");
 
-    var fechaMaxima = Model.FechaFin.Date
+    string fechaMaxima = Model.FechaFin.Date
     .AddDays(-1)
     .ToString("yyyy-MM-dd");
 }
@@ -21,13 +21,19 @@
 
     <hr />
 
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
     <div class="alert alert-warning">
         <strong>Atención:</strong>
         Está por finalizar esta reserva antes de su fecha de finalización original.
-        La reserva original conservará su fecha de finalización.
+        La fecha de finalización original se conservará para mantener el historial.
     </div>
 
-    <!-- Datos de la reserva -->
     <div class="card shadow-sm mb-4">
 
         <div class="card-header bg-primary text-white">
@@ -41,56 +47,34 @@
 
             <dl class="row mb-0">
 
-                <dt class="col-sm-4">
-                    N° de reserva
-                </dt>
+                <dt class="col-sm-4">N° de reserva</dt>
+                <dd class="col-sm-8">@Model.IdReserva</dd>
 
+                <dt class="col-sm-4">Inquilino</dt>
                 <dd class="col-sm-8">
-                    @Model.IdReserva
+                    @(Model.Inquilino != null
+                                        ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}"
+                                        : "-")
                 </dd>
 
-
-                <dt class="col-sm-4">
-                    Inquilino
-                </dt>
-
+                <dt class="col-sm-4">Inmueble</dt>
                 <dd class="col-sm-8">
-                    @Model.Inquilino?.Nombre
-                    @Model.Inquilino?.Apellido
+                    @(Model.Inmueble != null
+                                        ? Model.Inmueble.Direccion
+                                        : "-")
                 </dd>
 
-
-                <dt class="col-sm-4">
-                    Inmueble
-                </dt>
-
-                <dd class="col-sm-8">
-                    @Model.Inmueble?.Direccion
-                </dd>
-
-
-                <dt class="col-sm-4">
-                    Fecha de inicio
-                </dt>
-
+                <dt class="col-sm-4">Fecha de inicio</dt>
                 <dd class="col-sm-8">
                     @Model.FechaInicio.ToString("dd/MM/yyyy HH:mm")
                 </dd>
 
-
-                <dt class="col-sm-4">
-                    Fecha de finalización original
-                </dt>
-
+                <dt class="col-sm-4">Fecha de finalización original</dt>
                 <dd class="col-sm-8 fw-bold">
                     @Model.FechaFin.ToString("dd/MM/yyyy HH:mm")
                 </dd>
 
-
-                <dt class="col-sm-4">
-                    Monto diario
-                </dt>
-
+                <dt class="col-sm-4">Monto diario</dt>
                 <dd class="col-sm-8">
                     $@Model.MontoDiario.ToString("N2")
                 </dd>
@@ -98,19 +82,15 @@
             </dl>
 
         </div>
-
     </div>
 
 
-    <!-- Formulario de finalización -->
     <div class="card shadow-sm">
 
         <div class="card-header bg-warning">
-
             <h5 class="mb-0">
                 Finalización anticipada
             </h5>
-
         </div>
 
         <div class="card-body">
@@ -121,12 +101,11 @@
 
                 <input type="hidden" name="id" value="@Model.IdReserva" />
 
-
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3">
                 </div>
 
 
-                <!-- Fecha -->
+                <!-- FECHA -->
                 <div class="mb-4">
 
                     <label for="fechaFinalizacion" class="form-label fw-bold">
@@ -139,103 +118,105 @@
                         min="@fechaMinima" max="@fechaMaxima" required />
 
                     <div class="form-text">
-
-                        Seleccione una fecha posterior al inicio y
-                        anterior a la fecha de finalización original.
-
+                        La fecha debe ser posterior al inicio y anterior
+                        a la fecha de finalización original.
                     </div>
 
-                    <span class="text-danger" asp-validation-for="FechaCancelacion">
+                </div>
+
+
+                <!-- MULTA -->
+                <div class="alert alert-danger">
+
+                    <h5>
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Penalización
+                    </h5>
+
+                    <p>
+                        Si transcurrió menos de la mitad del período,
+                        corresponde el 50% del alquiler restante.
+                    </p>
+
+                    <p>
+                        Si transcurrió la mitad o más,
+                        corresponde el 25% del alquiler restante.
+                    </p>
+
+                    <hr />
+
+                    <strong>
+                        Multa calculada:
+                    </strong>
+
+                    <span id="montoMulta" class="fs-4 fw-bold">
+                        $0,00
                     </span>
 
                 </div>
 
 
-                <!-- Información de multa -->
-                <div class="alert alert-danger">
+                <!-- PAGO -->
+                <div id="contenedorPago" class="border rounded p-3 bg-light mb-4">
 
-                    <h5>
-                        <i class="bi bi-exclamation-triangle"></i>
-                        Penalización por finalización anticipada
+                    <h5 class="text-primary">
+                        <i class="bi bi-cash-coin"></i>
+                        Pago de la multa
                     </h5>
 
-                    <hr />
+                    <div class="form-check mb-3">
 
-                    <p class="mb-2">
-                        El importe de la penalización se calcula según
-                        el tiempo transcurrido de la reserva:
-                    </p>
+                        <input class="form-check-input" type="checkbox" id="pagaMultaNow" name="pagaMultaNow"
+                            value="true" required />
 
-                    <ul>
-                        <li>
-                            Si transcurrió menos de la mitad del período:
-                            <strong>50% del alquiler restante.</strong>
-                        </li>
+                        <label class="form-check-label fw-bold" for="pagaMultaNow">
 
-                        <li>
-                            Si transcurrió la mitad o más:
-                            <strong>25% del alquiler restante.</strong>
-                        </li>
-                    </ul>
+                            El inquilino abona la multa en este momento.
 
-                    <div class="mt-3">
+                        </label>
 
-                        <strong>
-                            Multa calculada:
-                        </strong>
+                    </div>
 
-                        <span id="montoMulta" class="fs-4 fw-bold">
-                            $0,00
-                        </span>
+
+                    <div class="mb-3">
+
+                        <label for="medioPago" class="form-label fw-bold">
+
+                            Medio de pago
+
+                        </label>
+
+                        <select id="medioPago" name="medioPago" class="form-select" required>
+
+                            <option value="1">Efectivo</option>
+                            <option value="2">Débito</option>
+                            <option value="3">Crédito</option>
+                            <option value="4">Transferencia</option>
+
+                        </select>
 
                     </div>
 
                 </div>
 
 
-                <!-- Pago obligatorio -->
-                <div class="alert alert-info">
+                <button type="submit" class="btn btn-danger">
 
-                    <h5>
-                        <i class="bi bi-cash-coin"></i>
-                        Pago de la penalización
-                    </h5>
+                    <i class="bi bi-check-circle"></i>
+                    Confirmar finalización
 
-                    <p class="mb-0">
+                </button>
 
-                        Para finalizar anticipadamente la reserva,
-                        deberá registrarse el pago de la penalización.
+                <a asp-action="Details" asp-route-id="@Model.IdReserva" class="btn btn-secondary">
 
-                        La penalización no genera ningún reintegro.
+                    <i class="bi bi-arrow-left"></i>
+                    Cancelar
 
-                    </p>
-
-                </div>
-
-
-                <!-- Botones -->
-                <div class="mt-4">
-
-                    <button type="submit" class="btn btn-danger">
-
-                        <i class="bi bi-check-circle"></i>
-                        Confirmar finalización
-
-                    </button>
-
-                    <a asp-action="Details" asp-route-id="@Model.IdReserva" class="btn btn-secondary">
-
-                        <i class="bi bi-arrow-left"></i>
-                        Cancelar
-
-                    </a>
-
-                </div>
+                </a>
 
             </form>
 
         </div>
-
     </div>
 
 </div>
@@ -250,33 +231,29 @@
     <script>
 
         const fechaInicio =
-            new Date('@Model.FechaInicio.ToString("yyyy-MM-dd")');
+            new Date("@Model.FechaInicio.ToString("yyyy-MM-dd")");
 
         const fechaFinOriginal =
-            new Date('@Model.FechaFin.ToString("yyyy-MM-dd")');
+            new Date("@Model.FechaFin.ToString("yyyy-MM-dd")");
 
         const montoDiario =
             @Model.MontoDiario.ToString(
             System.Globalization.CultureInfo.InvariantCulture
                 );
 
-
     const inputFecha =
-        document.getElementById('fechaFinalizacion');
+        document.getElementById("fechaFinalizacion");
 
     const elementoMulta =
-        document.getElementById('montoMulta');
+        document.getElementById("montoMulta");
 
 
     function calcularMulta() {
 
         if (!inputFecha.value) {
-
             elementoMulta.textContent = "$0,00";
-
             return;
         }
-
 
         const fechaFinalizacion =
             new Date(inputFecha.value);
@@ -300,21 +277,7 @@
         if (diasRestantes <= 0) {
 
             elementoMulta.textContent = "$0,00";
-
             return;
-        }
-
-
-        let porcentajeMulta;
-
-
-        if (diasTranscurridos < duracionTotal / 2) {
-
-            porcentajeMulta = 0.50;
-
-        } else {
-
-            porcentajeMulta = 0.25;
 
         }
 
@@ -323,23 +286,30 @@
             diasRestantes * montoDiario;
 
 
-        const multa =
-            alquilerRestante * porcentajeMulta;
+        let multa;
+
+
+        if (diasTranscurridos < duracionTotal / 2) {
+
+            multa = alquilerRestante * 0.50;
+
+        } else {
+
+            multa = alquilerRestante * 0.25;
+
+        }
 
 
         elementoMulta.textContent =
-            multa.toLocaleString(
-                'es-AR',
-                {
-                    style: 'currency',
-                    currency: 'ARS'
-                }
-            );
+            multa.toLocaleString("es-AR", {
+                style: "currency",
+                currency: "ARS"
+            });
     }
 
 
     inputFecha.addEventListener(
-        'change',
+        "change",
         calcularMulta
     );
 

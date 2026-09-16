@@ -741,6 +741,13 @@ namespace Grupo18_Inmobiliaria.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+            if (DateTime.Now < reserva.FechaInicio)
+            {
+                TempData["Error"] =
+                    "No se puede realizar una finalización anticipada antes de que comience la reserva.";
+
+                return RedirectToAction(nameof(Details), new { id });
+            }
 
             return View(reserva);
         }
