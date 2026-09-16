@@ -485,5 +485,63 @@ namespace Grupo18_Inmobiliaria.Models
 
             return listaFinalizadas;
         }
+
+      public IList<Inmueble> ObtenerInmueblesMasReservados365Dias(int pagina = 1, int tamPagina = 10)
+{
+    IList<Inmueble> lista = new List<Inmueble>();
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = """
+            SELECT 
+                inm.IdInmueble,
+                inm.Direccion,
+                inm.Capacidad,
+                inm.PrecioAlquiler,
+                COUNT(r.IdReserva) AS CantidadReservas
+            FROM Reservas r
+            INNER JOIN inmuebles inm 
+                ON r.IdInmueble = inm.IdInmueble
+            WHERE r.FechaInicio >= DATE_SUB(NOW(), INTERVAL 365 DAY)
+            GROUP BY 
+                inm.IdInmueble,
+                inm.Direccion,
+                inm.Capacidad,
+                inm.PrecioAlquiler
+            ORDER BY CantidadReservas DESC;
+        """;
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.CommandType = CommandType.Text;
+
+            connection.Open();
+
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    lista.Add(new Inmueble
+                    {
+                        IdInmueble = reader.GetInt32(
+                            reader.GetOrdinal("IdInmueble")),
+
+                        Direccion = reader.GetString(
+                            reader.GetOrdinal("Direccion")),
+
+                        Capacidad = reader.GetInt32(
+                            reader.GetOrdinal("Capacidad")),
+
+                        PrecioAlquiler = reader.GetDecimal(
+                            reader.GetOrdinal("PrecioAlquiler")),
+                        CantidadReservas = reader.GetInt32(reader.GetOrdinal("CantidadReservas"))
+                    });
+                }
+            }
+        }
+    }
+
+    return lista;
+}
     }
 }

@@ -52,7 +52,7 @@ namespace Grupo18_Inmobiliaria.Models
         public IList<Imagen> ListaImagenes {get;set;}=new List<Imagen>();
 
 
-
+        public int CantidadReservas { get; set; }
 
 
         public bool Estado { get; set; } = true;

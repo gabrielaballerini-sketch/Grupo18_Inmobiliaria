@@ -6,5 +6,6 @@ public interface IRepositorioReserva : IRepositorio<Reserva>
 
     int FinalizarAnticipadamente(int idReserva, decimal multa, DateTime fechaCancelacion, int IdUsuarioCancelacion);
     IList<Reserva> ObtenerFinalizadas(int pagina = 1, int tamPagina = 10);
+     IList<Inmueble> ObtenerInmueblesMasReservados365Dias(int pagina = 1, int tamPagina = 10);
 
 }

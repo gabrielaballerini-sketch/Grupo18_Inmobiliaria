@@ -536,13 +536,13 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             var inmuebles = repo_Inmueble.ObtenerActivos() ?? new List<Inmueble>();
 
-            var resultado = inmuebles
-                .Where(i => i.Direccion.Contains(term, StringComparison.OrdinalIgnoreCase))
+            var resultado = inmuebles.Where(i => i.Direccion.Contains(term, StringComparison.OrdinalIgnoreCase))
                 .Select(i => new
                 {
                     id = i.IdInmueble,
                     direccion = i.Direccion,
-                    precio = i.PrecioAlquiler
+                    precio = i.PrecioAlquiler,
+                    porcentajeReserva=i.PorcentajeReserva
                 })
                 .Take(10)
                 .ToList();
@@ -999,6 +999,13 @@ namespace Grupo18_Inmobiliaria.Controllers
 
                 return View(reserva);
             }
+        }
+        [HttpGet]
+        public IActionResult MasReservados()
+        {
+            var inmuebles = repo_Reserva.ObtenerInmueblesMasReservados365Dias();
+
+            return View(inmuebles);
         }
 
 

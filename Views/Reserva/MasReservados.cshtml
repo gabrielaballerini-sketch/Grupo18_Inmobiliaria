@@ -1,0 +1,143 @@
+
+@model IList<Grupo18_Inmobiliaria.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Inmuebles más reservados";
+}
+
+<div class="container mt-4 mb-5">
+
+    <!-- ENCABEZADO -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">
+            <i class="bi bi-star-fill text-warning"></i>
+            Inmuebles más reservados
+        </h1>
+
+        <p class="text-muted fs-5">
+            Los inmuebles con mayor cantidad de reservas durante los últimos 365 días.
+        </p>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center shadow-sm">
+            <i class="bi bi-info-circle"></i>
+            No hay reservas registradas durante los últimos 365 días.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @{
+                int posicion = 1;
+            }
+
+            @foreach (var inmueble in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100 shadow-sm border-0">
+
+                        <!-- CABECERA DE LA TARJETA -->
+                        <div class="card-header bg-dark text-white text-center py-3">
+
+                            <div class="fs-4 fw-bold">
+                                #@posicion
+                            </div>
+
+                            @if (posicion == 1)
+                            {
+                                <div class="text-warning">
+                                    <i class="bi bi-trophy-fill"></i>
+                                    Más reservado
+                                </div>
+                            }
+                            else if (posicion == 2)
+                            {
+                                <div class="text-light">
+                                    <i class="bi bi-award-fill"></i>
+                                    Segundo lugar
+                                </div>
+                            }
+                            else if (posicion == 3)
+                            {
+                                <div class="text-warning">
+                                    <i class="bi bi-award"></i>
+                                    Tercer lugar
+                                </div>
+                            }
+
+                        </div>
+
+                        <!-- CUERPO -->
+                        <div class="card-body">
+
+                            <h4 class="card-title fw-bold mb-3">
+                                <i class="bi bi-house-door-fill"></i>
+                                @inmueble.Direccion
+                            </h4>
+
+                            <div class="mb-2">
+                                <i class="bi bi-people-fill text-secondary"></i>
+                                <strong>Capacidad:</strong>
+                                @inmueble.Capacidad personas
+                            </div>
+
+                            <div class="mb-3">
+                                <i class="bi bi-cash-coin text-success"></i>
+                                <strong>Precio:</strong>
+                                $@inmueble.PrecioAlquiler.ToString("N2")
+                            </div>
+
+                            <hr />
+
+                            <!-- CANTIDAD DE RESERVAS -->
+                            <div class="text-center mt-3">
+
+                                <div class="text-muted">
+                                    <i class="bi bi-calendar-check"></i>
+                                    Reservas en los últimos 365 días
+                                </div>
+
+                                <div class="display-5 fw-bold text-primary">
+                                    @inmueble.CantidadReservas
+                                </div>
+
+                                <div class="text-muted">
+                                    @(inmueble.CantidadReservas == 1
+                                        ? "reserva"
+                                        : "reservas")
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                posicion++;
+            }
+
+        </div>
+    }
+
+    <!-- BOTÓN VOLVER -->
+    <div class="text-center mt-5">
+
+        <a asp-controller="Reserva"
+           asp-action="Index"
+           class="btn btn-secondary btn-lg">
+
+            <i class="bi bi-arrow-left"></i>
+            Volver a reservas
+
+        </a>
+
+    </div>
+
+</div>
+
