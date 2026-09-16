@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Extender Reserva";
+
+    var fechaMinima = Model.FechaFin.Date
+    .AddDays(1)
+    .ToString("yyyy-MM-dd");
 }
 
 <div class="container mt-4">
@@ -34,9 +38,7 @@
 
         @Html.AntiForgeryToken()
 
-        <input type="hidden"
-               name="id"
-               value="@Model.IdReserva" />
+        <input type="hidden" name="id" value="@Model.IdReserva" />
 
 
         <div class="mb-3">
@@ -45,13 +47,10 @@
                 Nueva fecha de finalización
             </label>
 
-            <input type="date"
-                   name="fechaFin"
-                   class="form-control"
-                   value="@Model.FechaFin.ToString("yyyy-MM-dd")" />
+            <input type="date" name="fechaFin" class="form-control" min="@fechaMinima" required />
 
-            <span class="text-danger"
-                  asp-validation-for="FechaFin">
+            <span class="text-danger">
+                @Html.ValidationMessage("fechaFin")
             </span>
 
         </div>
@@ -63,12 +62,8 @@
                 Nuevo monto diario
             </label>
 
-            <input type="number"
-                   name="montoDiario"
-                   class="form-control"
-                   step="0.01"
-                   min="0.01"
-                   value="@Model.MontoDiario" />
+            <input type="number" name="montoDiario" class="form-control" step="0.01" min="0.01"
+                value="@Model.MontoDiario" required />
 
             <span class="text-danger">
                 @Html.ValidationMessage("montoDiario")
@@ -79,23 +74,21 @@
 
         <div class="alert alert-secondary">
 
-            <strong>La nueva reserva comenzará automáticamente el:</strong>
+            <strong>
+                La nueva reserva comenzará automáticamente el:
+            </strong>
 
-            @Model.FechaFin.Date.AddHours(15)
-                .ToString("dd/MM/yyyy HH:mm")
+            @Model.FechaFin.Date.AddHours(15).ToString("dd/MM/yyyy HH:mm")
 
         </div>
 
 
-        <button type="submit"
-                class="btn btn-success">
+        <button type="submit" class="btn btn-success">
             Confirmar extensión
         </button>
 
 
-        <a asp-action="Details"
-           asp-route-id="@Model.IdReserva"
-           class="btn btn-secondary">
+        <a asp-action="Details" asp-route-id="@Model.IdReserva" class="btn btn-secondary">
             Cancelar
         </a>
 

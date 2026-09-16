@@ -57,8 +57,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
-
         // CREATE - GET
 
         public IActionResult Create()
@@ -69,7 +67,6 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return View();
         }
-
 
         // CREATE - POST
 
@@ -100,24 +97,15 @@ namespace Grupo18_Inmobiliaria.Controllers
                 ModelState.AddModelError("IdInquilino", "Debe seleccionar un inquilino.");
             }
 
-
-
-
             // Verificar que haya un inmueble seleccionado
-
 
             if (reserva.IdInmueble <= 0)
             {
                 ModelState.AddModelError("IdInmueble", "Debe seleccionar un inmueble.");
             }
 
-
-
-
             // La fecha de inicio debe ser anterior
             // a la fecha de finalización
-
-
 
             if (reserva.FechaInicio < DateTime.Now)
             {
@@ -126,15 +114,10 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             }
 
-
-
             if (reserva.FechaInicio >= reserva.FechaFin)
             {
                 ModelState.AddModelError("FechaFin", "La fecha de finalización debe ser posterior a la fecha de inicio.");
             }
-
-
-
 
             // Verificar que el inmueble no esté reservado
             // durante ese período
@@ -154,24 +137,17 @@ namespace Grupo18_Inmobiliaria.Controllers
                 }
             }
 
-
-
             // SI HAY ERRORES
-
 
             if (!ModelState.IsValid)
             {
-
 
                 CargarDesplegables(reserva.IdInquilino, reserva.IdInmueble);
 
                 return View(reserva);
             }
 
-
-
             // GUARDAR
-
 
             try
             {
@@ -216,9 +192,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             return View(reserva);
         }
 
-
         // DELETE - POST
-
 
         [Authorize(Roles = "Administrativo")]
         [HttpPost, ActionName("Delete")]
@@ -263,9 +237,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             return View(reserva);
         }
 
-
         // EDIT - POST
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -276,12 +248,9 @@ namespace Grupo18_Inmobiliaria.Controllers
                 return NotFound();
             }
 
-
             // Forzar horarios fijos
             reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
             reserva.FechaFin = reserva.FechaFin.Date.AddHours(10);
-
-
 
             // Limpieza de ModelState para propiedades de navegación (igual que en Create)
             foreach (var key in ModelState.Keys
@@ -359,8 +328,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
-
         // INACTIVOS
 
         [Authorize(Roles = "Administrativo")]
@@ -389,8 +356,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
-
         // REACTIVAR
 
         [Authorize(Roles = "Administrativo")]
@@ -411,8 +376,6 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(Inactivos));
         }
-
-
 
         // cargar monto a la vista x dia
         [HttpGet]
@@ -447,18 +410,13 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
         // DESPLEGABLES
-
-
         private void CargarDesplegables(
             int selectedInquilino = 0,
             int selectedInmueble = 0)
         {
 
             // INQUILINOS ACTIVOS
-
-
             var inquilinos = repo_Inquilino.ObtenerActivos() ?? new List<Inquilino>();
 
             ViewBag.Inquilinos = new SelectList(inquilinos.Select(i => new
@@ -472,11 +430,7 @@ namespace Grupo18_Inmobiliaria.Controllers
                     selectedInquilino
                 );
 
-
-
             // INMUEBLES ACTIVOS
-
-
             var inmuebles = repo_Inmueble.ObtenerActivos() ?? new List<Inmueble>();
 
             ViewBag.Inmuebles = new SelectList(inmuebles.Select(i => new
@@ -604,39 +558,38 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
-// GET: Reservas/Extender/5
-[HttpGet]
-public IActionResult Extender(int id)
-{
-    var reserva = repo_Reserva.ObtenerPorId(id);
+        // GET: Reservas/Extender/5
+        [HttpGet]
+        public IActionResult Extender(int id)
+        {
+            var reserva = repo_Reserva.ObtenerPorId(id);
 
-    if (reserva == null)
-    {
-        return NotFound();
-    }
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
-    if (!reserva.Estado)
-    {
-        TempData["Error"] = "No se puede extender una reserva que está dada de baja.";
-        return RedirectToAction(nameof(Index));
-    }
+            if (!reserva.Estado)
+            {
+                TempData["Error"] = "No se puede extender una reserva que está dada de baja.";
+                return RedirectToAction(nameof(Index));
+            }
 
-    // Opcional: Validar que no se extienda una reserva que ya finalizó en el pasado
-    if (reserva.FechaFin < DateTime.Now)
-    {
-        TempData["Error"] = "No se puede extender una reserva cuya fecha de fin ya transcurrió.";
-        return RedirectToAction(nameof(Index));
-    }
+            // Opcional: Validar que no se extienda una reserva que ya finalizó en el pasado
+            if (reserva.FechaFin < DateTime.Now)
+            {
+                TempData["Error"] = "No se puede extender una reserva cuya fecha de fin ya transcurrió.";
+                return RedirectToAction(nameof(Index));
+            }
 
-    return View(reserva);
-}
+            return View(reserva);
+        }
 
 
 
 
 
         [HttpPost]
-
         [ValidateAntiForgeryToken]
         public IActionResult Extender(
             int id,
@@ -659,10 +612,7 @@ public IActionResult Extender(int id)
                 return RedirectToAction(nameof(Index));
             }
 
-
-
             // VALIDAR MONTO
-
 
             if (montoDiario <= 0)
             {
@@ -671,24 +621,17 @@ public IActionResult Extender(int id)
                     "El monto diario debe ser mayor a 0.");
             }
 
-
             // NUEVA FECHA DE INICIO
-
-
             // La nueva reserva comienza cuando
             // termina la reserva original.
 
             DateTime nuevaFechaInicio =
                 reservaOriginal.FechaFin.Date.AddHours(15);
 
-
-
             // NUEVA FECHA DE FIN
-
 
             DateTime nuevaFechaFin =
                 fechaFin.Date.AddHours(10);
-
 
             if (nuevaFechaFin <= nuevaFechaInicio)
             {
@@ -697,10 +640,7 @@ public IActionResult Extender(int id)
                     "La nueva fecha de finalización debe ser posterior a la fecha de inicio.");
             }
 
-
-
             // VERIFICAR DISPONIBILIDAD
-
 
             if (nuevaFechaFin > nuevaFechaInicio)
             {
@@ -718,10 +658,7 @@ public IActionResult Extender(int id)
                 }
             }
 
-
             // SI HAY ERRORES
-
-
             if (!ModelState.IsValid)
             {
                 reservaOriginal.MontoDiario = montoDiario;
@@ -731,11 +668,7 @@ public IActionResult Extender(int id)
                 return View(reservaOriginal);
             }
 
-
-
             // USUARIO LOGUEADO
-
-
             var claimUsuario =
                 User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -749,11 +682,7 @@ public IActionResult Extender(int id)
 
             int idUsuario = int.Parse(claimUsuario.Value);
 
-
-
             // CREAR NUEVA RESERVA
-
-
             var nuevaReserva = new Reserva
             {
                 IdInquilino = reservaOriginal.IdInquilino,
@@ -771,11 +700,7 @@ public IActionResult Extender(int id)
                 IdUsuario = idUsuario
             };
 
-
-
             // GUARDAR
-
-
             try
             {
                 repo_Reserva.Alta(nuevaReserva);
@@ -797,279 +722,222 @@ public IActionResult Extender(int id)
         }
 
 
-        // FINALIZACION ANTICIPADA
 
+        // FINALIZACION ANTICIPADA
         [HttpGet]
-public IActionResult Finalizar(int id)
-{
-    var reserva = repo_Reserva.ObtenerPorId(id);
+        public IActionResult Finalizar(int id)
+        {
+            var reserva = repo_Reserva.ObtenerPorId(id);
 
-    if (reserva == null)
-    {
-        return NotFound();
-    }
+            if (reserva == null)
+            {
+                return NotFound();
+            }
 
-    if (!reserva.Estado)
-    {
-        TempData["Error"] =
-            "No se puede finalizar una reserva que ya está dada de baja.";
+            if (!reserva.Estado)
+            {
+                TempData["Error"] =
+                    "No se puede finalizar una reserva que ya está dada de baja.";
 
-        return RedirectToAction(nameof(Index));
-    }
+                return RedirectToAction(nameof(Index));
+            }
 
-    return View(reserva);
-}
+            return View(reserva);
+        }
 
 
         // FINALIZACION ANTICIPADA
-
         [HttpPost]
-[ValidateAntiForgeryToken]
-public IActionResult Finalizar(
-    int id,
-    DateTime fechaFinalizacion,
-    bool pagaMultaNow,
-    int medioPago)
-{
-
-    // 1. BUSCAR LA RESERVA
- 
-    var reserva = repo_Reserva.ObtenerPorId(id);
-
-    if (reserva == null)
-    {
-        return NotFound();
-    }
-
-   
-    // 2. VERIFICAR QUE ESTÉ ACTIVA
-
-
-    if (!reserva.Estado)
-    {
-        TempData["Error"] =
-            "La reserva ya se encuentra dada de baja.";
-
-        return RedirectToAction(nameof(Index));
-    }
-
-
-    // 3. NORMALIZAR FECHA DE FINALIZACIÓN
-
-
-    DateTime fechaCancelacionLimpia =
-        fechaFinalizacion.Date.AddHours(10);
-
-
-
-    // 4. VALIDAR FECHA
-   
-
-    if (fechaCancelacionLimpia <= reserva.FechaInicio)
-    {
-        ModelState.AddModelError(
-            "fechaFinalizacion",
-            "La fecha de finalización debe ser posterior a la fecha de inicio.");
-    }
-
-    if (fechaCancelacionLimpia >= reserva.FechaFin)
-    {
-        ModelState.AddModelError(
-            "fechaFinalizacion",
-            "La fecha indicada no corresponde a una finalización anticipada. " +
-            "Debe ser anterior a la fecha original de finalización.");
-    }
-
-
-
-    // 5. CALCULAR MULTA
-   
-
-    decimal multaCalculada = 0;
-
-    if (ModelState.IsValid)
-    {
-        int duracionTotalDias =
-            (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
-
-        int tiempoTranscurridoDias =
-            (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
-
-        if (tiempoTranscurridoDias < 0)
+        [ValidateAntiForgeryToken]
+        public IActionResult Finalizar(int id, DateTime fechaFinalizacion, bool pagaMultaNow, int medioPago)
         {
-            tiempoTranscurridoDias = 0;
-        }
 
-        int diasRestantes =
-            (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
+            // 1. BUSCAR LA RESERVA
+            var reserva = repo_Reserva.ObtenerPorId(id);
 
-        if (diasRestantes < 0)
-        {
-            diasRestantes = 0;
-        }
-
-        decimal alquilerRestante =
-            diasRestantes * reserva.MontoDiario;
-
-
-        // Menos de la mitad del tiempo cumplido
-        // → 50% del alquiler restante
-
-        if (tiempoTranscurridoDias <
-            ((double)duracionTotalDias / 2))
-        {
-            multaCalculada =
-                alquilerRestante * 0.50m;
-        }
-        else
-        {
-            // Mitad o más del tiempo cumplido
-            // → 25% del alquiler restante
-
-            multaCalculada =
-                alquilerRestante * 0.25m;
-        }
-    }
-
-
-   
-    // 6. SI HAY ERRORES, VOLVER A LA VISTA
-    
-
-    if (!ModelState.IsValid)
-    {
-        reserva.Multa = multaCalculada;
-        reserva.FechaCancelacion = fechaCancelacionLimpia;
-
-        return View(reserva);
-    }
-
-
-   
-    // 7. OBTENER USUARIO LOGUEADO
-   
-
-    var claimUsuario =
-        User.FindFirst(ClaimTypes.NameIdentifier);
-
-    if (claimUsuario == null)
-    {
-        TempData["Error"] =
-            "No se pudo identificar al usuario logueado. " +
-            "Inicie sesión nuevamente.";
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    int idUsuarioCancelacion;
-
-    if (!int.TryParse(
-        claimUsuario.Value,
-        out idUsuarioCancelacion))
-    {
-        TempData["Error"] =
-            "El usuario logueado no tiene un identificador válido.";
-
-        return RedirectToAction(nameof(Index));
-    }
-
-
-    // 8. SI HAY MULTA, DEBE PAGARSE
-
-
-    if (multaCalculada > 0 && !pagaMultaNow)
-    {
-        TempData["Error"] =
-            $"No se puede finalizar la reserva. " +
-            $"Debe abonar la multa de ${multaCalculada:N2}.";
-
-        reserva.Multa = multaCalculada;
-        reserva.FechaCancelacion = fechaCancelacionLimpia;
-
-        return View(reserva);
-    }
-
-
-   
-    // 9. GUARDAR FINALIZACIÓN
-  
-
-    try
-    {
-        repo_Reserva.FinalizarAnticipadamente(
-            id,
-            multaCalculada,
-            fechaCancelacionLimpia,
-            idUsuarioCancelacion);
-
-
-   
-        // 10. REGISTRAR PAGO DE MULTA
-   
-
-        if (multaCalculada > 0 && pagaMultaNow)
-        {
-            var pagoMulta = new Pago
+            if (reserva == null)
             {
-                IdReserva = reserva.IdReserva,
-                FechaPago = DateTime.Now,
-                Importe = multaCalculada,
-                ConceptoPago = ConceptoPago.Multa,
-                MedioPago = (MedioPago)medioPago,
-                Estado = true,
-                IdUsuarioCreador = idUsuarioCancelacion
-            };
+                return NotFound();
+            }
 
-            repo_Pago.Alta(pagoMulta);
+            // 2. VERIFICAR QUE ESTÉ ACTIVA
+            if (!reserva.Estado)
+            {
+                TempData["Error"] =
+                    "La reserva ya se encuentra dada de baja.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 3. NORMALIZAR FECHA DE FINALIZACIÓN
+            DateTime fechaCancelacionLimpia =
+                fechaFinalizacion.Date.AddHours(10);
+
+            // 4. VALIDAR FECHA
+            if (fechaCancelacionLimpia <= reserva.FechaInicio)
+            {
+                ModelState.AddModelError(
+                    "fechaFinalizacion",
+                    "La fecha de finalización debe ser posterior a la fecha de inicio.");
+            }
+
+            if (fechaCancelacionLimpia >= reserva.FechaFin)
+            {
+                ModelState.AddModelError(
+                    "fechaFinalizacion",
+                    "La fecha indicada no corresponde a una finalización anticipada. " +
+                    "Debe ser anterior a la fecha original de finalización.");
+            }
+
+            // 5. CALCULAR MULTA
+            decimal multaCalculada = 0;
+
+            if (ModelState.IsValid)
+            {
+                int duracionTotalDias =
+                    (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
+
+                int tiempoTranscurridoDias =
+                    (fechaCancelacionLimpia.Date - reserva.FechaInicio.Date).Days;
+
+                if (tiempoTranscurridoDias < 0)
+                {
+                    tiempoTranscurridoDias = 0;
+                }
+
+                int diasRestantes =
+                    (reserva.FechaFin.Date - fechaCancelacionLimpia.Date).Days;
+
+                if (diasRestantes < 0)
+                {
+                    diasRestantes = 0;
+                }
+
+                decimal alquilerRestante =
+                    diasRestantes * reserva.MontoDiario;
+
+
+                // Menos de la mitad del tiempo cumplido
+                // → 50% del alquiler restante
+
+                if (tiempoTranscurridoDias <
+                    ((double)duracionTotalDias / 2))
+                {
+                    multaCalculada =
+                        alquilerRestante * 0.50m;
+                }
+                else
+                {
+                    // Mitad o más del tiempo cumplido
+                    // → 25% del alquiler restante
+
+                    multaCalculada =
+                        alquilerRestante * 0.25m;
+                }
+            }
+
+            // 6. SI HAY ERRORES, VOLVER A LA VISTA
+            if (!ModelState.IsValid)
+            {
+                reserva.Multa = multaCalculada;
+                reserva.FechaCancelacion = fechaCancelacionLimpia;
+
+                return View(reserva);
+            }
+
+            // 7. OBTENER USUARIO LOGUEADO
+            var claimUsuario =
+                User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claimUsuario == null)
+            {
+                TempData["Error"] =
+                    "No se pudo identificar al usuario logueado. " +
+                    "Inicie sesión nuevamente.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            int idUsuarioCancelacion;
+
+            if (!int.TryParse(
+                claimUsuario.Value,
+                out idUsuarioCancelacion))
+            {
+                TempData["Error"] =
+                    "El usuario logueado no tiene un identificador válido.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 8. SI HAY MULTA, DEBE PAGARSE
+            if (multaCalculada > 0 && !pagaMultaNow)
+            {
+                TempData["Error"] =
+                    $"No se puede finalizar la reserva. " +
+                    $"Debe abonar la multa de ${multaCalculada:N2}.";
+
+                reserva.Multa = multaCalculada;
+                reserva.FechaCancelacion = fechaCancelacionLimpia;
+
+                return View(reserva);
+            }
+
+            // 9. GUARDAR FINALIZACIÓN
+            try
+            {
+                repo_Reserva.FinalizarAnticipadamente(
+                    id,
+                    multaCalculada,
+                    fechaCancelacionLimpia,
+                    idUsuarioCancelacion);
+
+                // 10. REGISTRAR PAGO DE MULTA
+                if (multaCalculada > 0 && pagaMultaNow)
+                {
+                    var pagoMulta = new Pago
+                    {
+                        IdReserva = reserva.IdReserva,
+                        FechaPago = DateTime.Now,
+                        Importe = multaCalculada,
+                        ConceptoPago = ConceptoPago.Multa,
+                        MedioPago = (MedioPago)medioPago,
+                        Estado = true,
+                        IdUsuarioCreador = idUsuarioCancelacion
+                    };
+
+                    repo_Pago.Alta(pagoMulta);
+                }
+
+                // 11. MENSAJE
+                if (multaCalculada > 0)
+                {
+                    TempData["Mensaje"] =
+                        $"Reserva finalizada correctamente. " +
+                        $"Se registró el pago de la multa de ${multaCalculada:N2}.";
+                }
+                else
+                {
+                    TempData["Mensaje"] =
+                        "Reserva finalizada correctamente.";
+                }
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new { id = reserva.IdReserva });
+            }
+            catch (Exception ex)
+            {
+
+                TempData["Error"] =
+                    "Error al finalizar la reserva: " + ex.Message;
+
+                reserva.Multa = multaCalculada;
+                reserva.FechaCancelacion = fechaCancelacionLimpia;
+
+                return View(reserva);
+            }
         }
-
-
-    
-        // 11. MENSAJE
- 
-
-        if (multaCalculada > 0)
-        {
-            TempData["Mensaje"] =
-                $"Reserva finalizada correctamente. " +
-                $"Se registró el pago de la multa de ${multaCalculada:N2}.";
-        }
-        else
-        {
-            TempData["Mensaje"] =
-                "Reserva finalizada correctamente.";
-        }
-
-        return RedirectToAction(
-            nameof(Details),
-            new { id = reserva.IdReserva });
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] =
-            "Error al finalizar la reserva: " + ex.Message;
-
-        reserva.Multa = multaCalculada;
-        reserva.FechaCancelacion = fechaCancelacionLimpia;
-
-        return View(reserva);
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     }

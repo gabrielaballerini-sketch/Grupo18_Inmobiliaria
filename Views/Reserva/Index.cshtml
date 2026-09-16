@@ -23,11 +23,6 @@
     </div>
 
 
-
-
-
-
-
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info">
@@ -86,11 +81,6 @@
                                 <i class="bi bi-pencil-square"></i>
                             </a>
 
-                            <a asp-action="Extender" asp-route-id="@reserva.IdReserva" class="btn btn-success btn-sm"
-                               title="Extender reserva">
-                                <i class="bi bi-calendar-plus"></i>
-                            </a>
-
                             <a asp-action="Delete" asp-route-id="@reserva.IdReserva" class="btn btn-danger btn-sm">
                                 <i class="bi bi-trash"></i>
                             </a>
@@ -120,7 +110,7 @@
                     @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
                     {
                         <li class="page-item
-                            @(i == ViewBag.PaginaActual ? "active" : "")">
+                                    @(i == ViewBag.PaginaActual ? "active" : "")">
 
                             <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-tamPagina="10">
 

@@ -45,11 +45,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
-
-
-        // --- ALTA (CREATE) ---
-
         // GET: Inmueble/Create
         [HttpGet]
         public IActionResult Create()
@@ -87,13 +82,8 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
-
-
-
         // --- MODIFICACIÓN (EDIT) ---
 
-        // GET: Inmueble/Edit/5
         [HttpGet]
         public IActionResult Edit(int id)
         {
@@ -107,9 +97,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             CargarDesplegables(Inmueble.IdPropietario, Inmueble.IdTipoInmueble);
             return View(Inmueble);
         }
-
-
-
 
         // POST: Inmueble/Edit/5
         [HttpPost]
@@ -145,13 +132,9 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-
-
-
         // --- BAJA LÓGICA (DELETE) ---
 
-        // GET:  Inmueble /Delete/5
-        [Authorize(Roles ="Administrativo")]
+        [Authorize(Roles = "Administrativo")]
         [HttpGet]
         public IActionResult Delete(int id)
         {
@@ -164,10 +147,8 @@ namespace Grupo18_Inmobiliaria.Controllers
             return View(Inmueble);
         }
 
-
-
         // POST: Inmueble/Delete/5
-        [Authorize(Roles ="Administrativo")]
+        [Authorize(Roles = "Administrativo")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -184,8 +165,9 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        [Authorize(Roles ="Administrativo")]
+
         // GET: Inmueble/Inactivos
+        [Authorize(Roles = "Administrativo")]
         public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
         {
             if (pagina < 1)
@@ -212,7 +194,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
         // POST: Inmueble/Reactivar/5
-        [Authorize(Roles ="Administrativo")]
+        [Authorize(Roles = "Administrativo")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)
@@ -230,7 +212,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             // Redirige siempre de vuelta a la lista de inactivos o a Index
             return RedirectToAction(nameof(Inactivos));
         }
-
 
         // --- MÉTODO AUXILIAR PARA SELECTS ---
         private void CargarDesplegables(int selectedPropietario = 0, int selectedTipo = 0)
@@ -296,9 +277,6 @@ namespace Grupo18_Inmobiliaria.Controllers
             return Json(inmuebles);
         }
 
-
-
-
         [HttpGet]
         public IActionResult Disponibles()
         {
@@ -307,107 +285,107 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
 
-
         [HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment, [FromServices] IRepositorioImagen repositorioImagen)
-{
-    // Limpiamos del ModelState los objetos de navegación que vienen nulos en el POST
-    ModelState.Remove("Propietario");
-    ModelState.Remove("TipoInmueble");
-    ModelState.Remove("Imagenes");
-    ModelState.Remove("ImagenUrl");
-
-    if (!ModelState.IsValid)
-    {
-        var errores = ModelState
-            .Where(x => x.Value.Errors.Count > 0)
-            .Select(x => new {
-                Campo = x.Key,
-                Errores = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
-            });
-
-        return BadRequest(errores);
-    }
-
-    try
-    {
-        // 1. Guardar el inmueble en la BD y obtener su ID recién generado
-        int nuevoId = repo_Inmueble.Alta(inmueble);
-
-        // 2. Si se adjuntaron fotos, crear carpeta, guardarlas en wwwroot y registrar la portada
-        if (imagenes != null && imagenes.Count > 0)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAjax(Inmueble inmueble, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment, [FromServices] IRepositorioImagen repositorioImagen)
         {
-            string wwwPath = environment.WebRootPath;
-            string path = Path.Combine(wwwPath, "Uploads", "Inmuebles", nuevoId.ToString());
+            // Limpiamos del ModelState los objetos de navegación que vienen nulos en el POST
+            ModelState.Remove("Propietario");
+            ModelState.Remove("TipoInmueble");
+            ModelState.Remove("Imagenes");
+            ModelState.Remove("ImagenUrl");
 
-            if (!Directory.Exists(path))
+            if (!ModelState.IsValid)
             {
-                Directory.CreateDirectory(path);
+                var errores = ModelState
+                   .Where(x => x.Value.Errors.Count > 0)
+                   .Select(x => new
+                   {
+                       Campo = x.Key,
+                       Errores = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                   });
+
+                return BadRequest(errores);
             }
 
-            string? primeraUrl = null;
-
-            foreach (var file in imagenes)
+            try
             {
-                if (file.Length > 0)
-                {
-                    var extension = Path.GetExtension(file.FileName);
-                    var nombreArchivo = $"{Guid.NewGuid()}{extension}";
-                    var rutaArchivo = Path.Combine(path, nombreArchivo);
+                // 1. Guardar el inmueble en la BD y obtener su ID recién generado
+                int nuevoId = repo_Inmueble.Alta(inmueble);
 
-                    using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                // 2. Si se adjuntaron fotos, crear carpeta, guardarlas en wwwroot y registrar la portada
+                if (imagenes != null && imagenes.Count > 0)
+                {
+                    string wwwPath = environment.WebRootPath;
+                    string path = Path.Combine(wwwPath, "Uploads", "Inmuebles", nuevoId.ToString());
+
+                    if (!Directory.Exists(path))
                     {
-                        await file.CopyToAsync(stream);
+                        Directory.CreateDirectory(path);
                     }
 
-                    var url = $"/Uploads/Inmuebles/{nuevoId}/{nombreArchivo}";
+                    string? primeraUrl = null;
 
-                    // Guardar en la tabla de imágenes asociada al inmueble
-                    Imagen imagen = new Imagen
+                    foreach (var file in imagenes)
                     {
-                        IdInmueble = nuevoId,
-                        Url = url
-                    };
-                    repositorioImagen.Alta(imagen);
+                        if (file.Length > 0)
+                        {
+                            var extension = Path.GetExtension(file.FileName);
+                            var nombreArchivo = $"{Guid.NewGuid()}{extension}";
+                            var rutaArchivo = Path.Combine(path, nombreArchivo);
 
-                    // La primera imagen subida queda como portada
-                    if (primeraUrl == null)
+                            using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+
+                            var url = $"/Uploads/Inmuebles/{nuevoId}/{nombreArchivo}";
+
+                            // Guardar en la tabla de imágenes asociada al inmueble
+                            Imagen imagen = new Imagen
+                            {
+                                IdInmueble = nuevoId,
+                                Url = url
+                            };
+                            repositorioImagen.Alta(imagen);
+
+                            // La primera imagen subida queda como portada
+                            if (primeraUrl == null)
+                            {
+                                primeraUrl = url;
+                            }
+                        }
+                    }
+
+                    if (primeraUrl != null)
                     {
-                        primeraUrl = url;
+                        repo_Inmueble.ModificarPortada(nuevoId, primeraUrl);
                     }
                 }
-            }
 
-            if (primeraUrl != null)
+                return Ok();
+            }
+            catch (Exception ex)
             {
-                repo_Inmueble.ModificarPortada(nuevoId, primeraUrl);
+                return BadRequest("Ocurrió un error en el servidor: " + ex.Message);
             }
         }
-
-        return Ok();
-    }
-    catch (Exception ex)
-    {
-        return BadRequest("Ocurrió un error en el servidor: " + ex.Message);
-    }
-}
 
 
 
         [HttpGet]
-public IActionResult Details(int id)
-{
-    var inmueble = repo_Inmueble.ObtenerPorId(id);
-    if (inmueble == null)
-    {
-        return NotFound();
-    }
+        public IActionResult Details(int id)
+        {
+            var inmueble = repo_Inmueble.ObtenerPorId(id);
+            if (inmueble == null)
+            {
+                return NotFound();
+            }
 
-    inmueble.ListaImagenes = repo_Imagen.ObtenerPorInmueble(id);
+            inmueble.ListaImagenes = repo_Imagen.ObtenerPorInmueble(id);
 
-    return View(inmueble);
-}
+            return View(inmueble);
+        }
 
 
 
