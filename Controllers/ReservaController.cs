@@ -72,7 +72,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Reserva reserva)
+        public IActionResult Create(Reserva reserva, int medioPagoSenia = 1)
         {
             // 💡 Forzar los horarios fijos de Check-in (15:00) y Check-out (10:00)
             reserva.FechaInicio = reserva.FechaInicio.Date.AddHours(15);
@@ -162,9 +162,64 @@ namespace Grupo18_Inmobiliaria.Controllers
 
                 reserva.IdUsuario = int.Parse(claimUsuario.Value);
 
+                // Obtener el inmueble directamente desde la BD
+                var inmueble = repo_Inmueble.ObtenerPorId(reserva.IdInmueble);
+
+                if (inmueble == null)
+                {
+                    ModelState.AddModelError(
+                        "IdInmueble",
+                        "El inmueble seleccionado no existe."
+                    );
+
+                    CargarDesplegables(
+                        reserva.IdInquilino,
+                        reserva.IdInmueble
+                    );
+
+                    return View(reserva);
+                }
+
+                // El monto diario siempre debe salir del inmueble,
+                // no confiar en el valor enviado por el navegador.
+                reserva.MontoDiario = inmueble.PrecioAlquiler;
+
+                // Crear reserva
                 repo_Reserva.Alta(reserva);
 
-                TempData["Mensaje"] = "Reserva creada con éxito.";
+
+                // Calcular importe de la seña
+                int cantidadDias =
+                    (reserva.FechaFin.Date - reserva.FechaInicio.Date).Days;
+
+                decimal montoTotal =
+                    cantidadDias * reserva.MontoDiario;
+
+                decimal importeSenia =
+                    montoTotal * inmueble.PorcentajeReserva / 100m;
+
+
+                // Registrar la seña
+                if (importeSenia > 0)
+                {
+                    var pagoSenia = new Pago
+                    {
+                        IdReserva = reserva.IdReserva,
+                        FechaPago = DateTime.Now,
+                        Importe = importeSenia,
+                        ConceptoPago = ConceptoPago.Senia,
+                        MedioPago = (MedioPago)medioPagoSenia,
+                        Estado = true,
+                        IdUsuarioCreador = reserva.IdUsuario
+                    };
+
+                    repo_Pago.Alta(pagoSenia);
+                }
+
+
+                TempData["Mensaje"] =
+                    "Reserva creada y seña registrada correctamente.";
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

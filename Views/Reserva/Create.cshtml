@@ -15,7 +15,7 @@
     <!-- Cartel informativo sobre horarios fijos -->
     <div class="alert alert-info border-0 shadow-sm mb-4">
         <i class="bi bi-clock-fill me-2"></i>
-        <strong>Horarios de Check-in y Check-out:</strong> 
+        <strong>Horarios de Check-in y Check-out:</strong>
         El ingreso se realiza a partir de las <strong>15:00 hs</strong> y el egreso hasta las <strong>10:00 hs</strong>.
     </div>
 
@@ -29,14 +29,12 @@
         <div class="mb-3 position-relative">
             <label class="form-label">Inquilino</label>
             <input type="hidden" asp-for="IdInquilino" id="IdInquilinoHidden" />
-            <input type="text" 
-                   id="buscadorInquilino" 
-                   class="form-control" 
-                   placeholder="Escriba el nombre, apellido o DNI..." 
-                   autocomplete="off" 
-                   value="@(Model?.Inquilino != null ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}" : "")" />
+            <input type="text" id="buscadorInquilino" class="form-control"
+                placeholder="Escriba el nombre, apellido o DNI..." autocomplete="off"
+                value="@(Model?.Inquilino != null ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}" : "")" />
 
-            <ul id="listaSugerencias" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;"></ul>
+            <ul id="listaSugerencias" class="dropdown-menu w-100 shadow-sm"
+                style="max-height: 200px; overflow-y: auto; display: none;"></ul>
             <span asp-validation-for="IdInquilino" class="text-danger"></span>
         </div>
 
@@ -44,21 +42,20 @@
         <div class="mb-3 position-relative">
             <label class="form-label">Inmueble</label>
             <input type="hidden" asp-for="IdInmueble" id="IdInmuebleHidden" />
-            <input type="text" 
-                   id="buscadorInmueble" 
-                   class="form-control" 
-                   placeholder="Escriba la dirección del inmueble..." 
-                   autocomplete="off" 
-                   value="@(Model?.Inmueble != null ? Model.Inmueble.Direccion : "")" />
+            <input type="text" id="buscadorInmueble" class="form-control"
+                placeholder="Escriba la dirección del inmueble..." autocomplete="off"
+                value="@(Model?.Inmueble != null ? Model.Inmueble.Direccion : "")" />
 
-            <ul id="listaSugerenciasInmueble" class="dropdown-menu w-100 shadow-sm" style="max-height: 200px; overflow-y: auto; display: none;"></ul>
+            <ul id="listaSugerenciasInmueble" class="dropdown-menu w-100 shadow-sm"
+                style="max-height: 200px; overflow-y: auto; display: none;"></ul>
             <span asp-validation-for="IdInmueble" class="text-danger"></span>
         </div>
 
         <!-- MONTO DIARIO -->
         <div class="mb-3">
             <label asp-for="MontoDiario" class="form-label">Monto Diario</label>
-            <input asp-for="MontoDiario" id="inputMonto" type="number" step="any" min="0" class="form-control" readonly />
+            <input asp-for="MontoDiario" id="inputMonto" type="number" step="any" min="0" class="form-control"
+                readonly />
             <span asp-validation-for="MontoDiario" class="text-danger"></span>
         </div>
 
@@ -75,6 +72,26 @@
                 <input asp-for="FechaFin" id="FechaFin" type="date" min="@fechaMinima" class="form-control" />
                 <span asp-validation-for="FechaFin" class="text-danger"></span>
             </div>
+        </div>
+        <!-- MEDIO DE PAGO DE LA SEÑA -->
+
+        <div class="mb-3">
+
+            <label for="medioPagoSenia" class="form-label">
+
+                Medio de pago de la seña
+
+            </label>
+
+            <select id="medioPagoSenia" name="medioPagoSenia" class="form-select">
+
+                <option value="1">Efectivo</option>
+                <option value="2">Débito</option>
+                <option value="3">Crédito</option>
+                <option value="4">Transferencia</option>
+
+            </select>
+
         </div>
 
         <!-- BOTONES -->
@@ -115,7 +132,7 @@
                         data.forEach(item => {
                             let li = document.createElement("li");
                             li.innerHTML = `<a class="dropdown-item" href="#" data-id="${item.id}">${item.nombreCompleto}</a>`;
-                            
+
                             li.querySelector("a").addEventListener("click", function (e) {
                                 e.preventDefault();
                                 inputHiddenInquilino.value = item.id;
@@ -162,7 +179,7 @@
                         data.forEach(item => {
                             let li = document.createElement("li");
                             li.innerHTML = `<a class="dropdown-item" href="#" data-id="${item.id}" data-precio="${item.precio}">${item.direccion}</a>`;
-                            
+
                             li.querySelector("a").addEventListener("click", function (e) {
                                 e.preventDefault();
                                 inputHiddenInmueble.value = item.id;
