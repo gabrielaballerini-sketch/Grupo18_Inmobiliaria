@@ -386,6 +386,34 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return View(inmueble);
         }
+        public IActionResult MenosReservados(
+    int dias = 30,
+    int pagina = 1)
+{
+    // Validamos que solamente se puedan seleccionar
+    // 30, 60 o 90 días
+    if (dias != 30 && dias != 60 && dias != 90)
+    {
+        dias = 30;
+    }
+
+    // Cantidad de inmuebles por página
+    int tamPagina = 10;
+
+    // Obtener los inmuebles menos reservados
+    // durante el período seleccionado
+    var inmuebles =
+        repo_Inmueble.ObtenerInmueblesMenosReservados(
+            dias,
+            pagina,
+            tamPagina
+        );
+
+    ViewBag.Dias = dias;
+    ViewBag.Pagina = pagina;
+
+    return View(inmuebles);
+}
 
 
 

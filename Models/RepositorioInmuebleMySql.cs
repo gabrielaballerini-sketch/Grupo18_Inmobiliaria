@@ -12,36 +12,36 @@ namespace Grupo18_Inmobiliaria.Models
 
         }
         public int Alta(Inmueble inmueble)
-{
-    int res = -1;
+        {
+            int res = -1;
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = """
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = """
         INSERT INTO inmuebles(Direccion,Capacidad,PrecioAlquiler,IdPropietario,Estado,IdTipoInmueble,Latitud,Longitud,PorcentajeReserva)
         VALUES(@Direccion,@Capacidad,@PrecioAlquiler,@IdPropietario,1,@IdTipoInmueble,@Latitud,@Longitud,@PorcentajeReserva);
         SELECT LAST_INSERT_ID();
         """;
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.CommandType = CommandType.Text;
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
 
-            command.Parameters.AddWithValue("@Direccion", inmueble.Direccion);
-            command.Parameters.AddWithValue("@Capacidad", inmueble.Capacidad);
-            command.Parameters.AddWithValue("@PrecioAlquiler", inmueble.PrecioAlquiler);
-            command.Parameters.AddWithValue("@IdPropietario", inmueble.IdPropietario);
-            command.Parameters.AddWithValue("@IdTipoInmueble", inmueble.IdTipoInmueble);
-            command.Parameters.AddWithValue("@Latitud", (object?)inmueble.Latitud ?? DBNull.Value);
-            command.Parameters.AddWithValue("@Longitud", (object?)inmueble.Longitud ?? DBNull.Value);
-            command.Parameters.AddWithValue("@PorcentajeReserva", inmueble.PorcentajeReserva);
+                    command.Parameters.AddWithValue("@Direccion", inmueble.Direccion);
+                    command.Parameters.AddWithValue("@Capacidad", inmueble.Capacidad);
+                    command.Parameters.AddWithValue("@PrecioAlquiler", inmueble.PrecioAlquiler);
+                    command.Parameters.AddWithValue("@IdPropietario", inmueble.IdPropietario);
+                    command.Parameters.AddWithValue("@IdTipoInmueble", inmueble.IdTipoInmueble);
+                    command.Parameters.AddWithValue("@Latitud", (object?)inmueble.Latitud ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@Longitud", (object?)inmueble.Longitud ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@PorcentajeReserva", inmueble.PorcentajeReserva);
 
-            connection.Open();
-            res = Convert.ToInt32(command.ExecuteScalar());
-            inmueble.IdInmueble = res;
+                    connection.Open();
+                    res = Convert.ToInt32(command.ExecuteScalar());
+                    inmueble.IdInmueble = res;
+                }
+            }
+            return res;
         }
-    }
-    return res;
-}
 
         public int Baja(int id)
         {
@@ -399,13 +399,13 @@ namespace Grupo18_Inmobiliaria.Models
 
 
 
-public IList<Inmueble> ObtenerDisponiblesEntreFechas(DateTime fechaInicio, DateTime fechaFin)
-{
-    var lista = new List<Inmueble>();
+        public IList<Inmueble> ObtenerDisponiblesEntreFechas(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var lista = new List<Inmueble>();
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = @"
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"
             SELECT 
                 i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, 
                 i.PrecioAlquiler, i.Estado, i.IdPropietario, i.PorcentajeReserva,i.ImagenUrl,
@@ -424,29 +424,95 @@ public IList<Inmueble> ObtenerDisponiblesEntreFechas(DateTime fechaInicio, DateT
                 AND r.FechaFin > @FechaInicio
             );";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.Parameters.AddWithValue("@FechaInicio", fechaInicio);
-            command.Parameters.AddWithValue("@FechaFin", fechaFin);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@FechaInicio", fechaInicio);
+                    command.Parameters.AddWithValue("@FechaFin", fechaFin);
 
-            connection.Open();
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                    lista.Add(MapearInmueble(reader));
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            lista.Add(MapearInmueble(reader));
+                    }
+                }
             }
+            return lista;
+        }
+        public IList<Inmueble> ObtenerInmueblesMenosReservados( int dias,int pagina = 1,int tamPagina = 10)
+        {
+            IList<Inmueble> lista = new List<Inmueble>();
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = """
+            SELECT
+                inm.IdInmueble,
+                inm.Direccion,
+                inm.Capacidad,
+                inm.PrecioAlquiler,
+                COUNT(r.IdReserva) AS CantidadReservas
+            FROM inmuebles inm
+            LEFT JOIN Reservas r
+                ON r.IdInmueble = inm.IdInmueble
+                AND r.FechaInicio >= DATE_SUB(NOW(), INTERVAL @Dias DAY)
+            GROUP BY
+                inm.IdInmueble,
+                inm.Direccion,
+                inm.Capacidad,
+                inm.PrecioAlquiler
+            ORDER BY CantidadReservas ASC
+            LIMIT @Offset, @TamPagina;
+            """;
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+
+                    int offset = (pagina - 1) * tamPagina;
+
+                    command.Parameters.AddWithValue("@Dias", dias);
+                    command.Parameters.AddWithValue("@Offset", offset);
+                    command.Parameters.AddWithValue("@TamPagina", tamPagina);
+
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lista.Add(new Inmueble
+                            {
+                                IdInmueble = reader.GetInt32(
+                                    reader.GetOrdinal("IdInmueble")),
+
+                                Direccion = reader.GetString(
+                                    reader.GetOrdinal("Direccion")),
+
+                                Capacidad = reader.GetInt32(
+                                    reader.GetOrdinal("Capacidad")),
+
+                                PrecioAlquiler = reader.GetDecimal(
+                                    reader.GetOrdinal("PrecioAlquiler")),
+
+                                CantidadReservas = reader.GetInt32(
+                                    reader.GetOrdinal("CantidadReservas"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return lista;
         }
     }
-    return lista;
+
+
+
+
+
+
+
 }
-}
-
-
-
-
-
-
-
-    }
 
 

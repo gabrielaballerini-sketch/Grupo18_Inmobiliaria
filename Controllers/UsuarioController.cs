@@ -416,6 +416,8 @@ namespace Grupo18_Inmobiliaria.Controllers
                             "ConfirmarPassword",
                             "Las nuevas contraseñas no coinciden."
                         );
+                         TempData["Error"] =
+                        "nuevas contraseñas no coinciden ";
                     }
                 }
 

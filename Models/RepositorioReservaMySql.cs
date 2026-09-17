@@ -543,5 +543,6 @@ namespace Grupo18_Inmobiliaria.Models
 
     return lista;
 }
+
     }
 }

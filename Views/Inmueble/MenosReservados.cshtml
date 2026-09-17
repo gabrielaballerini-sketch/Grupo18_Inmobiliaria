@@ -1,0 +1,446 @@
+@model IList<Grupo18_Inmobiliaria.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Inmuebles menos reservados";
+
+    int diasSeleccionados = ViewBag.Dias ?? 30;
+    int paginaActual = ViewBag.Pagina ?? 1;
+}
+
+<div class="container mt-4 mb-5">
+
+    <!-- ENCABEZADO -->
+    <div class="row mb-4">
+        <div class="col">
+
+            <div class="d-flex align-items-center">
+
+                <div class="bg-primary text-white rounded-3 p-3 me-3 shadow-sm">
+                    <i class="bi bi-graph-down-arrow fs-2"></i>
+                </div>
+
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        Inmuebles menos reservados
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        Consulta los inmuebles con menor cantidad de reservas.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- FILTRO -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-7">
+
+                    <h5 class="fw-bold mb-1">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        Período de análisis
+                    </h5>
+
+                    <p class="text-muted mb-md-0">
+                        Seleccioná el período que querés analizar.
+                    </p>
+
+                </div>
+
+                <div class="col-md-5">
+
+                    <form asp-controller="Inmueble" asp-action="MenosReservados" method="get">
+
+                        <div class="input-group">
+
+                            <select name="dias" class="form-select">
+
+                                <option value="30" selected="@(diasSeleccionados == 30)">
+                                    Últimos 30 días
+                                </option>
+
+                                <option value="60" selected="@(diasSeleccionados == 60)">
+                                    Últimos 60 días
+                                </option>
+
+                                <option value="90" selected="@(diasSeleccionados == 90)">
+                                    Últimos 90 días
+                                </option>
+
+                            </select>
+
+                            <button type="submit" class="btn btn-primary">
+
+                                <i class="bi bi-filter"></i>
+                                Filtrar
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <!-- RESUMEN -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-4">
+
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+                                <small class="text-muted">
+                                    Período seleccionado
+                                </small>
+
+                                <h4 class="fw-bold mb-0">
+                                    @diasSeleccionados días
+                                </h4>
+                            </div>
+
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-calendar-check fs-4"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+                                <small class="text-muted">
+                                    Inmuebles mostrados
+                                </small>
+
+                                <h4 class="fw-bold mb-0">
+                                    @Model.Count
+                                </h4>
+                            </div>
+
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-houses fs-4"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+                                <small class="text-muted">
+                                    Página actual
+                                </small>
+
+                                <h4 class="fw-bold mb-0">
+                                    @paginaActual
+                                </h4>
+                            </div>
+
+                            <div class="bg-light rounded-circle p-3">
+                                <i class="bi bi-file-earmark-text fs-4"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TABLA -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+            <div class="card-header bg-white border-0 p-4">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+                            Resultados
+                        </h5>
+
+                        <small class="text-muted">
+                            Ordenados desde el inmueble menos reservado.
+                        </small>
+
+                    </div>
+
+                    <span class="badge bg-primary rounded-pill px-3 py-2">
+                        @diasSeleccionados días
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">
+                                Inmueble
+                            </th>
+
+                            <th>
+                                Capacidad
+                            </th>
+
+                            <th>
+                                Precio alquiler
+                            </th>
+
+                            <th class="text-center">
+                                Reservas
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var inmueble in Model)
+                        {
+                            <tr>
+
+                                <!-- INMUEBLE -->
+                                <td class="ps-4">
+
+                                    <div class="d-flex align-items-center">
+
+                                        <div class="bg-light rounded-3 p-2 me-3">
+
+                                            <i class="bi bi-house-door fs-4"></i>
+
+                                        </div>
+
+                                        <div>
+
+                                            <div class="fw-semibold">
+                                                @inmueble.Direccion
+                                            </div>
+
+                                            <small class="text-muted">
+                                                ID: @inmueble.IdInmueble
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- CAPACIDAD -->
+                                <td>
+
+                                    <i class="bi bi-people me-1"></i>
+
+                                    @inmueble.Capacidad personas
+
+                                </td>
+
+
+                                <!-- PRECIO -->
+                                <td>
+
+                                    <span class="fw-semibold">
+                                        @inmueble.PrecioAlquiler.ToString("C")
+                                    </span>
+
+                                </td>
+
+
+                                <!-- RESERVAS -->
+                                <td class="text-center">
+
+                                    @if (inmueble.CantidadReservas == 0)
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3 py-2">
+
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Sin reservas
+
+                                        </span>
+                                    }
+                                    else if (inmueble.CantidadReservas <= 2)
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            @inmueble.CantidadReservas
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                            @inmueble.CantidadReservas
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAGINACIÓN -->
+        <div class="d-flex justify-content-center mt-4">
+
+            <nav>
+
+                <ul class="pagination shadow-sm">
+
+                    @if (paginaActual > 1)
+                    {
+                        <li class="page-item">
+
+                            <a class="page-link" asp-controller="Inmueble" asp-action="MenosReservados"
+                               asp-route-dias="@diasSeleccionados" asp-route-pagina="@(paginaActual - 1)">
+
+                                <i class="bi bi-chevron-left"></i>
+                                Anterior
+
+                            </a>
+
+                        </li>
+                    }
+
+                    <li class="page-item active">
+
+                        <span class="page-link">
+                            @paginaActual
+                        </span>
+
+                    </li>
+
+                    @if (Model.Count == 10)
+                    {
+                        <li class="page-item">
+
+                            <a class="page-link" asp-controller="Inmueble" asp-action="MenosReservados"
+                               asp-route-dias="@diasSeleccionados" asp-route-pagina="@(paginaActual + 1)">
+
+                                Siguiente
+                                <i class="bi bi-chevron-right"></i>
+
+                            </a>
+
+                        </li>
+                    }
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    }
+    else
+    {
+        <!-- SIN RESULTADOS -->
+        <div class="card border-0 shadow-sm rounded-4">
+
+            <div class="card-body text-center py-5">
+
+                <div class="mb-3">
+
+                    <i class="bi bi-house-x display-1 text-muted"></i>
+
+                </div>
+
+                <h4 class="fw-bold">
+                    No hay resultados
+                </h4>
+
+                <p class="text-muted mb-0">
+                    No se encontraron inmuebles para los últimos
+                    @diasSeleccionados días.
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- VOLVER -->
+    <div class="mt-4">
+
+        <a asp-controller="Inmueble" asp-action="Index" class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Volver a inmuebles
+
+        </a>
+
+    </div>
+
+</div>
