@@ -1,4 +1,5 @@
 
+using Grupo18_Inmobiliaria;
 using Grupo18_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -41,6 +42,12 @@ builder.Services.AddAuthentication("CookieAuth").AddCookie("CookieAuth", options
 
 // construimos la aplicacion
 var app = builder.Build();
+
+// inicializador de  bd , seeder
+using (var scope = app.Services.CreateScope())
+{
+DbSeeder.Seed(scope.ServiceProvider);
+}
 
 
 //Si NO estoy trabajando en desarrollo.
