@@ -5,16 +5,20 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Text;
 
 namespace Grupo18_Inmobiliaria.Controllers
 {
     public class CuentaController : Controller
     {
         private readonly IRepositorioUsuario repositorioUsuario;
+        private readonly IConfiguration configuration;
 
-        public CuentaController(IRepositorioUsuario repositorioUsuario)
+        public CuentaController(IRepositorioUsuario repositorioUsuario,IConfiguration configuration)
         {
             this.repositorioUsuario = repositorioUsuario;
+            this.configuration=configuration;
         }
         [AllowAnonymous]
         [HttpGet]
@@ -52,12 +56,7 @@ namespace Grupo18_Inmobiliaria.Controllers
                 ViewBag.Error = "El usuario se encuentra inactivo.";
                 return View();
             }
-
-            if (usuario.Password != password)
-            {
-                ViewBag.Error = "Usuario o contraseña incorrectos.";
-                return View();
-            }
+             
 
             var claims = new List<Claim>
             {

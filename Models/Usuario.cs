@@ -12,5 +12,11 @@ namespace Grupo18_Inmobiliaria.Models
         public bool Estado { get; set; } = true;
         public List<Reserva> ListaReservas { get; set; } = new List<Reserva>();
 
+        public string? PasswordActual { get; set; } 
+
+        public string? NuevaPassword { get; set; } 
+
+        public string? ConfirmarPassword { get; set; } 
+
     }
 }
