@@ -509,23 +509,21 @@ namespace Grupo18_Inmobiliaria.Controllers
                 return Json(new List<object>());
             }
 
-            var inquilinos = repo_Inquilino.ObtenerActivos() ?? new List<Inquilino>();
+            var inquilinos = repo_Inquilino.BuscarPorNombre(term);
 
-            // filtra los que empiecen con o contengan el texto ingresado
             var resultado = inquilinos
-                .Where(i => (i.Nombre + " " + i.Apellido).Contains(term, StringComparison.OrdinalIgnoreCase))
                 .Select(i => new
                 {
                     id = i.IdInquilino,
                     nombreCompleto = $"{i.Nombre} {i.Apellido} - DNI: {i.Dni}"
                 })
-                .Take(10) // Limitamos los resultados para que no cargue de mas
                 .ToList();
 
             return Json(resultado);
         }
 
         // GET: Reserva/BuscarInmueblesPorDireccion?term=rivadavia
+        [HttpGet]
         [HttpGet]
         public IActionResult BuscarInmueblesPorDireccion(string term)
         {
@@ -534,17 +532,16 @@ namespace Grupo18_Inmobiliaria.Controllers
                 return Json(new List<object>());
             }
 
-            var inmuebles = repo_Inmueble.ObtenerActivos() ?? new List<Inmueble>();
+            var inmuebles = repo_Inmueble.BuscarPorDireccion(term);
 
-            var resultado = inmuebles.Where(i => i.Direccion.Contains(term, StringComparison.OrdinalIgnoreCase))
+            var resultado = inmuebles
                 .Select(i => new
                 {
                     id = i.IdInmueble,
                     direccion = i.Direccion,
                     precio = i.PrecioAlquiler,
-                    porcentajeReserva=i.PorcentajeReserva
+                    porcentajeReserva = i.PorcentajeReserva
                 })
-                .Take(10)
                 .ToList();
 
             return Json(resultado);

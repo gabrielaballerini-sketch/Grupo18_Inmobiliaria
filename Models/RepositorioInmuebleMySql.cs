@@ -169,6 +169,54 @@ namespace Grupo18_Inmobiliaria.Models
             return listaActivos;
         }
 
+        public IList<Inmueble> BuscarPorDireccion(string direccion)
+        {
+            IList<Inmueble> inmuebles = new List<Inmueble>();
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = @"
+            SELECT i.IdInmueble, i.Direccion, i.Capacidad, i.Latitud, i.Longitud, 
+                   i.PrecioAlquiler, i.Estado, i.IdPropietario, i.ImagenUrl,
+                   i.PorcentajeReserva,
+                   p.Nombre AS PropNombre, 
+                   p.Apellido AS PropApellido, 
+                   p.Dni AS PropDni, 
+                   p.Telefono AS PropTelefono, 
+                   p.Email AS PropEmail,
+                   i.IdTipoInmueble, 
+                   t.Descripcion AS TipoDescripcion
+            FROM inmuebles i
+            JOIN propietarios p ON i.IdPropietario = p.IdPropietario
+            JOIN tipoinmueble t ON i.IdTipoInmueble = t.IdTipoInmueble
+            WHERE i.Estado = 1
+              AND i.Direccion LIKE @direccion
+            ORDER BY i.Direccion
+            LIMIT 10;";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.CommandType = CommandType.Text;
+
+                    command.Parameters.AddWithValue(
+                        "@direccion",
+                        "%" + direccion + "%");
+
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            inmuebles.Add(MapearInmueble(reader));
+                        }
+                    }
+                }
+            }
+
+            return inmuebles;
+        }
+
 
         private Inmueble MapearInmueble(MySqlDataReader reader)
         {
@@ -439,7 +487,7 @@ namespace Grupo18_Inmobiliaria.Models
             }
             return lista;
         }
-        public IList<Inmueble> ObtenerInmueblesMenosReservados( int dias,int pagina = 1,int tamPagina = 10)
+        public IList<Inmueble> ObtenerInmueblesMenosReservados(int dias, int pagina = 1, int tamPagina = 10)
         {
             IList<Inmueble> lista = new List<Inmueble>();
 
@@ -505,14 +553,11 @@ namespace Grupo18_Inmobiliaria.Models
 
             return lista;
         }
+
+
+
+
     }
-
-
-
-
-
-
-
 }
 
 

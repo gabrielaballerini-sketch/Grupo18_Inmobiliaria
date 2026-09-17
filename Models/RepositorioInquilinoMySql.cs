@@ -113,7 +113,7 @@ namespace Grupo18_Inmobiliaria.Models
         // OBTENER TODOS los activos
         public IList<Inquilino> ObtenerActivos(int pagina = 1, int tamPagina = 10)
         {
-           IList<Inquilino> inquilinos = new List<Inquilino>();
+            IList<Inquilino> inquilinos = new List<Inquilino>();
 
             using (var connection = new MySqlConnection(connectionString))
             {
@@ -127,7 +127,74 @@ namespace Grupo18_Inmobiliaria.Models
                 using (var command = new MySqlCommand(query, connection))
                 {
 
-                      command.CommandType = CommandType.Text;
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var inquilino = new Inquilino
+                            {
+                                IdInquilino = reader.GetInt32(
+                                    reader.GetOrdinal(nameof(Inquilino.IdInquilino))),
+
+                                Nombre = reader.GetString(
+                                    reader.GetOrdinal(nameof(Inquilino.Nombre))),
+
+                                Apellido = reader.GetString(
+                                    reader.GetOrdinal(nameof(Inquilino.Apellido))),
+
+                                Dni = reader.GetString(
+                                    reader.GetOrdinal(nameof(Inquilino.Dni))),
+
+                                Telefono = reader.IsDBNull(
+                                    reader.GetOrdinal(nameof(Inquilino.Telefono)))
+                                    ? string.Empty
+                                    : reader.GetString(
+                                        reader.GetOrdinal(nameof(Inquilino.Telefono))),
+
+                                Email = reader.GetString(
+                                    reader.GetOrdinal(nameof(Inquilino.Email))),
+
+                                Estado = reader.GetBoolean(
+                                    reader.GetOrdinal(nameof(Inquilino.Estado)))
+                            };
+
+                            inquilinos.Add(inquilino);
+                        }
+                    }
+                }
+            }
+
+            return inquilinos;
+        }
+
+        public IList<Inquilino> BuscarPorNombre(string nombre)
+        {
+            IList<Inquilino> inquilinos = new List<Inquilino>();
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = @"
+            SELECT IdInquilino, Nombre, Apellido, Dni, Telefono, Email, Estado
+            FROM Inquilinos
+            WHERE Estado = 1
+              AND (
+                    Nombre LIKE @nombre
+                    OR Apellido LIKE @nombre
+                    OR CONCAT(Nombre, ' ', Apellido) LIKE @nombre
+                    OR Dni LIKE @nombre
+                  )
+            ORDER BY Apellido, Nombre
+            LIMIT 10;";
+
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.CommandType = CommandType.Text;
+
+                    command.Parameters.AddWithValue("@nombre", "%" + nombre + "%");
+
                     connection.Open();
 
                     using (var reader = command.ExecuteReader())
@@ -246,108 +313,108 @@ namespace Grupo18_Inmobiliaria.Models
         }
 
         // REACTIVACIÓN / ALTA LÓGICA
-public int Reactivar(int id)
-{
-    int res = -1;
+        public int Reactivar(int id)
+        {
+            int res = -1;
 
 
-    using (var connection = new MySqlConnection(connectionString))
-   
-  {
-        string sql = @"
+            using (var connection = new MySqlConnection(connectionString))
+
+            {
+                string sql = @"
             UPDATE Inquilinos
             SET Estado = true
 
             WHERE IdInquilino = @id
         ";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.CommandType = CommandType.Text;
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
 
-            command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@id", id);
 
-            connection.Open();
-            res = command.ExecuteNonQuery();
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                }
+            }
+
+            return res;
         }
-    }
-
-    return res;
-}
 
 
-public IList<Inquilino> ObtenerInactivos(int pagina = 1, int tamPagina = 10)
-{
-    var inquilinos = new List<Inquilino>();
+        public IList<Inquilino> ObtenerInactivos(int pagina = 1, int tamPagina = 10)
+        {
+            var inquilinos = new List<Inquilino>();
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string query = $@"SELECT IdInquilino, Nombre, Apellido, Dni, Telefono, Email, Estado 
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string query = $@"SELECT IdInquilino, Nombre, Apellido, Dni, Telefono, Email, Estado 
                         FROM Inquilinos 
                         WHERE Estado = 0
                          LIMIT {tamPagina} OFFSET {(pagina - 1) * tamPagina};";
 
 
-        using (var command = new MySqlCommand(query, connection))
+                using (var command = new MySqlCommand(query, connection))
 
 
-        {
-             command.CommandType = CommandType.Text;
-            connection.Open();
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
                 {
-                    var inquilino = new Inquilino
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
                     {
-                        IdInquilino = reader.GetInt32(reader.GetOrdinal(nameof(Inquilino.IdInquilino))),
-                        Nombre = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Nombre))),
-                        Apellido = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Apellido))),
-                        Dni = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Dni))),
-                        Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Inquilino.Telefono)))
-                            ? string.Empty
-                            : reader.GetString(reader.GetOrdinal(nameof(Inquilino.Telefono))),
-                        Email = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Email))),
-                        Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Inquilino.Estado)))
-                    };
-                    inquilinos.Add(inquilino);
+                        while (reader.Read())
+                        {
+                            var inquilino = new Inquilino
+                            {
+                                IdInquilino = reader.GetInt32(reader.GetOrdinal(nameof(Inquilino.IdInquilino))),
+                                Nombre = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Nombre))),
+                                Apellido = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Apellido))),
+                                Dni = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Dni))),
+                                Telefono = reader.IsDBNull(reader.GetOrdinal(nameof(Inquilino.Telefono)))
+                                    ? string.Empty
+                                    : reader.GetString(reader.GetOrdinal(nameof(Inquilino.Telefono))),
+                                Email = reader.GetString(reader.GetOrdinal(nameof(Inquilino.Email))),
+                                Estado = reader.GetBoolean(reader.GetOrdinal(nameof(Inquilino.Estado)))
+                            };
+                            inquilinos.Add(inquilino);
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    return inquilinos;
-}
-
-
-public int ObtenerCantidad(bool? soloActivos = true)
-{
-    int res = 0;
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = "SELECT COUNT(IdInquilino) FROM Inquilinos";
-        
-        if (soloActivos.HasValue)
-        {
-            sql += " WHERE Estado = @estado";
+            return inquilinos;
         }
 
-        using (var command = new MySqlCommand(sql, connection))
+
+        public int ObtenerCantidad(bool? soloActivos = true)
         {
-            if (soloActivos.HasValue)
+            int res = 0;
+            using (var connection = new MySqlConnection(connectionString))
             {
-                command.Parameters.AddWithValue("@estado", soloActivos.Value ? 1 : 0);
-            }
+                string sql = "SELECT COUNT(IdInquilino) FROM Inquilinos";
 
-            command.CommandType = CommandType.Text;
-            connection.Open();
-            
-            // Para un COUNT único podés usar ExecuteScalar directamente en vez del DataReader:
-            res = Convert.ToInt32(command.ExecuteScalar());
+                if (soloActivos.HasValue)
+                {
+                    sql += " WHERE Estado = @estado";
+                }
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    if (soloActivos.HasValue)
+                    {
+                        command.Parameters.AddWithValue("@estado", soloActivos.Value ? 1 : 0);
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+
+                    // Para un COUNT único podés usar ExecuteScalar directamente en vez del DataReader:
+                    res = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+            return res;
         }
-    }
-    return res;
-}
 
 
 
