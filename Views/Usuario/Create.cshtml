@@ -19,7 +19,7 @@
 
             <div class="card-body p-4">
 
-                <form asp-action="Create" method="post">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
 
                     @Html.AntiForgeryToken()
 
@@ -67,6 +67,29 @@
                         </div>
 
                         <span asp-validation-for="Password"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label asp-for="AvatarFile" class="form-label">
+                            Foto de Perfil
+                        </label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-image"></i>
+                            </span>
+
+                            <input asp-for="AvatarFile"
+                                   type="file"
+                                   class="form-control"
+                                   accept="image/*" />
+                        </div>
+
+                        <span asp-validation-for="AvatarFile"
                               class="text-danger">
                         </span>
 

@@ -32,7 +32,7 @@
             <input type="hidden" asp-for="IdInquilino" id="IdInquilinoHidden" />
 
             <input type="text" id="buscadorInquilino" class="form-control"
-                   placeholder="Escriba el nombre, apellido o DNI..." autocomplete="off"
+                   placeholder="Escriba el nombre, apellido..." autocomplete="off"
                    value="@(Model?.Inquilino != null ? $"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}" : "")" />
 
             <ul id="listaSugerencias" class="dropdown-menu w-100 shadow-sm"
@@ -178,7 +178,7 @@
         </div>
 
     </form>
-    ```
+
 
 </div>
 
@@ -288,7 +288,7 @@
 
     // Guardamos internamente el porcentaje del inmueble.
     // No se muestra en pantalla.
-    let porcentajeReserva = 0;
+    let porcentajeReserva = parseFloat('@(ViewBag.PorcentajeReserva ?? 0)') || 0;
 
     let timeoutInmueble;
 
@@ -526,6 +526,7 @@
 
      document.addEventListener("DOMContentLoaded", function () {
 
+        calcularSenia();
         var form =
             document.querySelector("form");
 

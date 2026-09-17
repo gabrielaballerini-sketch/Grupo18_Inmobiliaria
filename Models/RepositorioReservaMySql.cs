@@ -544,5 +544,73 @@ namespace Grupo18_Inmobiliaria.Models
     return lista;
 }
 
+public IEnumerable<Reserva> ObtenerProximasATerminar(int dias)
+{
+    var lista = new List<Reserva>();
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"
+            SELECT r.IdReserva, r.FechaInicio, r.FechaFin, r.MontoDiario, r.Estado,
+                   i.IdInmueble, i.Direccion,
+                   inq.IdInquilino, inq.Nombre, inq.Apellido
+            FROM reservas r
+            INNER JOIN inmuebles i ON r.IdInmueble = i.IdInmueble
+            INNER JOIN inquilinos inq ON r.IdInquilino = inq.IdInquilino
+            WHERE r.FechaFin >= NOW() 
+              AND r.FechaFin <= DATE_ADD(NOW(), INTERVAL @Dias DAY)
+              AND r.Estado = 1
+            ORDER BY r.FechaFin ASC;";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@Dias", dias);
+            connection.Open();
+
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    lista.Add(new Reserva
+                    {
+                        IdReserva = reader.GetInt32("IdReserva"),
+                        FechaInicio = reader.GetDateTime("FechaInicio"),
+                        FechaFin = reader.GetDateTime("FechaFin"),
+                        MontoDiario = reader.GetDecimal("MontoDiario"),
+                        Estado = reader.GetBoolean("Estado"),
+                        Inmueble = new Inmueble
+                        {
+                            IdInmueble = reader.GetInt32("IdInmueble"),
+                            Direccion = reader.GetString("Direccion")
+                        },
+                        Inquilino = new Inquilino
+                        {
+                            IdInquilino = reader.GetInt32("IdInquilino"),
+                            Nombre = reader.GetString("Nombre"),
+                            Apellido = reader.GetString("Apellido")
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    return lista;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

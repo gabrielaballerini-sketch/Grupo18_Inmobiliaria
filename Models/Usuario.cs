@@ -18,5 +18,9 @@ namespace Grupo18_Inmobiliaria.Models
 
         public string? ConfirmarPassword { get; set; } 
 
+        public string? Avatar { get; set; }
+
+        public IFormFile? AvatarFile { get; set; }
+
     }
 }

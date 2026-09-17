@@ -372,6 +372,98 @@ namespace Grupo18_Inmobiliaria.Controllers
         }
 
 
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> EditAjax(Inmueble inmueble, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment, [FromServices] IRepositorioImagen repositorioImagen)
+{
+    // Limpiamos del ModelState los objetos de navegación que vienen nulos en el POST
+    ModelState.Remove("Propietario");
+    ModelState.Remove("TipoInmueble");
+    ModelState.Remove("Imagenes");
+    ModelState.Remove("ImagenUrl");
+    ModelState.Remove("ListaImagenes");
+
+    if (!ModelState.IsValid)
+    {
+        var errores = ModelState
+            .Where(x => x.Value.Errors.Count > 0)
+            .Select(x => new
+            {
+                Campo = x.Key,
+                Errores = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
+            });
+
+        return BadRequest(errores);
+    }
+
+    try
+    {
+        // 1. Actualizar la información del inmueble existente
+        repo_Inmueble.Modificacion(inmueble);
+
+        // 2. Si se adjuntaron nuevas fotos, guardarlas en la carpeta del inmueble
+        if (imagenes != null && imagenes.Count > 0)
+        {
+            string wwwPath = environment.WebRootPath;
+            string path = Path.Combine(wwwPath, "Uploads", "Inmuebles", inmueble.IdInmueble.ToString());
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            string? primeraUrl = null;
+
+            foreach (var file in imagenes)
+            {
+                if (file.Length > 0)
+                {
+                    var extension = Path.GetExtension(file.FileName);
+                    var nombreArchivo = $"{Guid.NewGuid()}{extension}";
+                    var rutaArchivo = Path.Combine(path, nombreArchivo);
+
+                    using (var stream = new FileStream(rutaArchivo, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    var url = $"/Uploads/Inmuebles/{inmueble.IdInmueble}/{nombreArchivo}";
+
+                    // Registrar la nueva imagen en la base de datos
+                    Imagen imagen = new Imagen
+                    {
+                        IdInmueble = inmueble.IdInmueble,
+                        Url = url
+                    };
+                    repositorioImagen.Alta(imagen);
+
+                    if (primeraUrl == null)
+                    {
+                        primeraUrl = url;
+                    }
+                }
+            }
+
+            // Si el inmueble no tenía portada asignada, asignamos la primera de las nuevas fotos
+            var inmuebleExistente = repo_Inmueble.ObtenerPorId(inmueble.IdInmueble);
+            if (primeraUrl != null && string.IsNullOrEmpty(inmuebleExistente?.ImagenUrl))
+            {
+                repo_Inmueble.ModificarPortada(inmueble.IdInmueble, primeraUrl);
+            }
+        }
+
+        TempData["Mensaje"] = "Inmueble actualizado con éxito.";
+        return Ok();
+    }
+    catch (Exception ex)
+    {
+        return BadRequest("Ocurrió un error en el servidor: " + ex.Message);
+    }
+}
+
+
+
+
 
         [HttpGet]
         public IActionResult Details(int id)

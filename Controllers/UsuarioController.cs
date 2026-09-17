@@ -1,80 +1,67 @@
-
 using Grupo18_Inmobiliaria.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Text;
 using System.Security.Claims;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-namespace Grupo18_Inmobiliaria.Controllers
 
+namespace Grupo18_Inmobiliaria.Controllers
 {
     [Authorize]
     public class UsuarioController : Controller
     {
         private readonly IRepositorioUsuario repositorioUsuario;
         private readonly IConfiguration configuration;
+        private readonly IWebHostEnvironment environment;
 
-        public UsuarioController(IRepositorioUsuario repositorio,
-            IConfiguration configuration)
+        public UsuarioController(
+            IRepositorioUsuario repositorio,
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             this.repositorioUsuario = repositorio;
             this.configuration = configuration;
+            this.environment = environment;
         }
+
         [Authorize(Roles = "Administrativo")]
         // GET: Usuario
         public IActionResult Index(int pagina = 1, int tamPagina = 10)
         {
-            if (pagina < 1)
-                pagina = 1;
+            if (pagina < 1) pagina = 1;
+            if (tamPagina < 1) tamPagina = 10;
 
-            if (tamPagina < 1)
-                tamPagina = 10;
-
-            var usuarios = repositorioUsuario.ObtenerActivos(
-                pagina,
-                tamPagina
-            );
-
+            var usuarios = repositorioUsuario.ObtenerActivos(pagina, tamPagina);
             var cantidad = repositorioUsuario.ObtenerCantidad(true);
 
             ViewBag.Pagina = pagina;
             ViewBag.TamPagina = tamPagina;
             ViewBag.Cantidad = cantidad;
-            ViewBag.TotalPaginas = (int)Math.Ceiling(
-                cantidad / (double)tamPagina
-            );
+            ViewBag.TotalPaginas = (int)Math.Ceiling(cantidad / (double)tamPagina);
 
             return View(usuarios);
         }
+
         [Authorize(Roles = "Administrativo")]
         // GET: Usuario/Inactivos
         public IActionResult Inactivos(int pagina = 1, int tamPagina = 10)
         {
-            if (pagina < 1)
-                pagina = 1;
+            if (pagina < 1) pagina = 1;
+            if (tamPagina < 1) tamPagina = 10;
 
-            if (tamPagina < 1)
-                tamPagina = 10;
-
-            var usuarios = repositorioUsuario.ObtenerInactivos(
-                pagina,
-                tamPagina
-            );
-
+            var usuarios = repositorioUsuario.ObtenerInactivos(pagina, tamPagina);
             var cantidad = repositorioUsuario.ObtenerCantidad(false);
 
             ViewBag.Pagina = pagina;
             ViewBag.TamPagina = tamPagina;
             ViewBag.Cantidad = cantidad;
-            ViewBag.TotalPaginas = (int)Math.Ceiling(
-            cantidad / (double)tamPagina
-            );
+            ViewBag.TotalPaginas = (int)Math.Ceiling(cantidad / (double)tamPagina);
 
             return View(usuarios);
         }
+
         [Authorize(Roles = "Administrativo")]
         // GET: Usuario/Create
         [HttpGet]
@@ -90,21 +77,16 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult Create(Usuario usuario)
         {
             ModelState.Remove("ListaReservas");
+            ModelState.Remove("AvatarFile");
 
             if (string.IsNullOrWhiteSpace(usuario.UserName))
             {
-                ModelState.AddModelError(
-                    "UserName",
-                    "El nombre de usuario es obligatorio."
-                );
+                ModelState.AddModelError("UserName", "El nombre de usuario es obligatorio.");
             }
 
             if (string.IsNullOrWhiteSpace(usuario.Password))
             {
-                ModelState.AddModelError(
-                    "Password",
-                    "La contraseña es obligatoria."
-                );
+                ModelState.AddModelError("Password", "La contraseña es obligatoria.");
             }
 
             if (!ModelState.IsValid)
@@ -112,31 +94,20 @@ namespace Grupo18_Inmobiliaria.Controllers
                 return View(usuario);
             }
 
-            var usuarioExistente =
-                repositorioUsuario.ObtenerPorUserName(usuario.UserName);
-
+            var usuarioExistente = repositorioUsuario.ObtenerPorUserName(usuario.UserName);
             if (usuarioExistente != null)
             {
-                ModelState.AddModelError(
-                    "UserName",
-                    "El nombre de usuario ya existe."
-                );
-
+                ModelState.AddModelError("UserName", "El nombre de usuario ya existe.");
                 return View(usuario);
             }
 
+            // Subida de foto de perfil opcional en la creación
+            if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
+            {
+                usuario.Avatar = GuardarAvatar(usuario.AvatarFile);
+            }
 
-            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: usuario.Password,
-            salt: Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
-            prf: KeyDerivationPrf.HMACSHA1,
-            iterationCount: 1000,
-            numBytesRequested: 256 / 8
-               )
-            );
-
-            usuario.Password = hashed;
-
+            usuario.Password = HashPassword(usuario.Password);
 
             repositorioUsuario.Alta(usuario);
             TempData["Mensaje"] = "Usuario creado correctamente.";
@@ -149,17 +120,10 @@ namespace Grupo18_Inmobiliaria.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            if (id <= 0)
-            {
-                return NotFound();
-            }
+            if (id <= 0) return NotFound();
 
             var usuario = repositorioUsuario.ObtenerPorId(id);
-
-            if (usuario == null)
-            {
-                return NotFound();
-            }
+            if (usuario == null) return NotFound();
 
             return View(usuario);
         }
@@ -170,27 +134,15 @@ namespace Grupo18_Inmobiliaria.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Usuario usuario)
         {
-            if (id != usuario.IdUsuario)
-            {
-                return BadRequest();
-            }
+            if (id != usuario.IdUsuario) return BadRequest();
 
             ModelState.Remove("ListaReservas");
+            ModelState.Remove("AvatarFile");
+            ModelState.Remove("Password"); // La contraseña es opcional al editar
 
             if (string.IsNullOrWhiteSpace(usuario.UserName))
             {
-                ModelState.AddModelError(
-                    "UserName",
-                    "El nombre de usuario es obligatorio."
-                );
-            }
-
-            if (string.IsNullOrWhiteSpace(usuario.Password))
-            {
-                ModelState.AddModelError(
-                    "Password",
-                    "La contraseña es obligatoria."
-                );
+                ModelState.AddModelError("UserName", "El nombre de usuario es obligatorio.");
             }
 
             if (!ModelState.IsValid)
@@ -198,39 +150,35 @@ namespace Grupo18_Inmobiliaria.Controllers
                 return View(usuario);
             }
 
-            var usuarioExistente =
-                repositorioUsuario.ObtenerPorUserName(usuario.UserName);
-
-            if (usuarioExistente != null &&
-                usuarioExistente.IdUsuario != usuario.IdUsuario)
+            var usuarioExistente = repositorioUsuario.ObtenerPorUserName(usuario.UserName);
+            if (usuarioExistente != null && usuarioExistente.IdUsuario != usuario.IdUsuario)
             {
-                ModelState.AddModelError(
-                    "UserName",
-                    "El nombre de usuario ya existe."
-                );
-
+                ModelState.AddModelError("UserName", "El nombre de usuario ya existe.");
                 return View(usuario);
             }
 
-            if (string.IsNullOrWhiteSpace(usuario.Password))
+            // Mantener o actualizar Avatar
+            var usuarioDb = repositorioUsuario.ObtenerPorId(id);
+            if (usuarioDb == null) return NotFound();
+
+            if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
             {
-                // No cambió la contraseña
-                usuario.Password = usuarioExistente.Password;
+                EliminarAvatarAnterior(usuarioDb.Avatar);
+                usuario.Avatar = GuardarAvatar(usuario.AvatarFile);
             }
             else
             {
-                // Cambió la contraseña → la hasheamos
-                string hashed = Convert.ToBase64String(
-                    KeyDerivation.Pbkdf2(
-                        password: usuario.Password,
-                        salt: Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
-                        prf: KeyDerivationPrf.HMACSHA1,
-                        iterationCount: 1000,
-                        numBytesRequested: 256 / 8
-                    )
-                );
+                usuario.Avatar = usuarioDb.Avatar;
+            }
 
-                usuario.Password = hashed;
+            // Mantener o actualizar Contraseña
+            if (string.IsNullOrWhiteSpace(usuario.Password))
+            {
+                usuario.Password = usuarioDb.Password;
+            }
+            else
+            {
+                usuario.Password = HashPassword(usuario.Password);
             }
 
             repositorioUsuario.Modificacion(usuario);
@@ -238,17 +186,15 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
         [Authorize(Roles = "Administrativo")]
         [HttpGet]
         public IActionResult Baja(int id)
         {
-            if (id <= 0)
-                return BadRequest();
+            if (id <= 0) return BadRequest();
 
             var usuario = repositorioUsuario.ObtenerPorId(id);
-
-            if (usuario == null)
-                return NotFound();
+            if (usuario == null) return NotFound();
 
             return View(usuario);
         }
@@ -259,20 +205,12 @@ namespace Grupo18_Inmobiliaria.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            if (id <= 0)
-            {
-                return BadRequest();
-            }
+            if (id <= 0) return BadRequest();
 
             var usuario = repositorioUsuario.ObtenerPorId(id);
-
-            if (usuario == null)
-            {
-                return NotFound();
-            }
+            if (usuario == null) return NotFound();
 
             repositorioUsuario.Baja(id);
-
             return RedirectToAction(nameof(Index));
         }
 
@@ -282,91 +220,73 @@ namespace Grupo18_Inmobiliaria.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Reactivar(int id)
         {
-            if (id <= 0)
-            {
-                return BadRequest();
-            }
+            if (id <= 0) return BadRequest();
 
             var usuario = repositorioUsuario.ObtenerPorId(id);
-
-            if (usuario == null)
-            {
-                return NotFound();
-            }
+            if (usuario == null) return NotFound();
 
             repositorioUsuario.Reactivar(id);
-
             return RedirectToAction(nameof(Inactivos));
         }
+
         [Authorize]
         [HttpGet]
         public IActionResult Perfil()
         {
             string? idUsuario = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(idUsuario))
-            {
-                return RedirectToAction("Login", "Cuenta");
-            }
-
-            if (!int.TryParse(idUsuario, out int id))
+            if (string.IsNullOrEmpty(idUsuario) || !int.TryParse(idUsuario, out int id))
             {
                 return RedirectToAction("Login", "Cuenta");
             }
 
             var usuario = repositorioUsuario.ObtenerPorId(id);
-
-            if (usuario == null)
-            {
-                return NotFound();
-            }
+            if (usuario == null) return NotFound();
 
             return View(usuario);
         }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-
-
-
         public async Task<IActionResult> Perfil(Usuario usuario)
         {
-            // 1. Obtener el ID del usuario logueado desde el Claim
-            string? idUsuario =
-                User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string? idUsuario = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(idUsuario))
+            if (string.IsNullOrEmpty(idUsuario) || !int.TryParse(idUsuario, out int id))
             {
                 return RedirectToAction("Login", "Cuenta");
             }
 
-            if (!int.TryParse(idUsuario, out int id))
-            {
-                return RedirectToAction("Login", "Cuenta");
-            }
+            Usuario? usuarioActual = repositorioUsuario.ObtenerPorId(id);
+            if (usuarioActual == null) return NotFound();
 
-         
-            Usuario? usuarioActual =
-                repositorioUsuario.ObtenerPorId(id);
-
-            if (usuarioActual == null)
-            {
-                return NotFound();
-            }
-
-            
+            // Preservar datos protegidos
             usuario.IdUsuario = usuarioActual.IdUsuario;
             usuario.RolUsuario = usuarioActual.RolUsuario;
             usuario.Estado = usuarioActual.Estado;
 
-            
             if (string.IsNullOrWhiteSpace(usuario.UserName))
             {
                 usuario.UserName = usuarioActual.UserName;
             }
 
-         
+            // --- LÓGICA DE FOTO DE PERFIL / AVATAR ---
+            if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
+            {
+                // Eliminar foto previa si existe
+                EliminarAvatarAnterior(usuarioActual.Avatar);
 
+                // Guardar la nueva foto y asignar URL
+                usuario.Avatar = GuardarAvatar(usuario.AvatarFile);
+            }
+            else
+            {
+                // Mantiene el avatar actual
+                usuario.Avatar= usuarioActual.Avatar;
+            }
+
+            // --- LÓGICA DE CONTRASEÑA ---
             bool quiereCambiarPassword =
                 !string.IsNullOrWhiteSpace(usuario.PasswordActual) ||
                 !string.IsNullOrWhiteSpace(usuario.NuevaPassword) ||
@@ -374,135 +294,111 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             if (!quiereCambiarPassword)
             {
-         
                 usuario.Password = usuarioActual.Password;
             }
             else
             {
-             
-
                 if (string.IsNullOrWhiteSpace(usuario.PasswordActual))
-                {
-                    ModelState.AddModelError(
-                        "PasswordActual",
-                        "Debe ingresar su contraseña actual."
-                    );
-                }
+                    ModelState.AddModelError("PasswordActual", "Debe ingresar su contraseña actual.");
 
                 if (string.IsNullOrWhiteSpace(usuario.NuevaPassword))
-                {
-                    ModelState.AddModelError(
-                        "NuevaPassword",
-                        "Debe ingresar una nueva contraseña."
-                    );
-                }
+                    ModelState.AddModelError("NuevaPassword", "Debe ingresar una nueva contraseña.");
 
                 if (string.IsNullOrWhiteSpace(usuario.ConfirmarPassword))
-                {
-                    ModelState.AddModelError(
-                        "ConfirmarPassword",
-                        "Debe confirmar la nueva contraseña."
-                    );
-                }
-
-       
+                    ModelState.AddModelError("ConfirmarPassword", "Debe confirmar la nueva contraseña.");
 
                 if (!string.IsNullOrWhiteSpace(usuario.NuevaPassword) &&
-                    !string.IsNullOrWhiteSpace(usuario.ConfirmarPassword))
+                    !string.IsNullOrWhiteSpace(usuario.ConfirmarPassword) &&
+                    usuario.NuevaPassword != usuario.ConfirmarPassword)
                 {
-                    if (usuario.NuevaPassword != usuario.ConfirmarPassword)
-                    {
-                        ModelState.AddModelError(
-                            "ConfirmarPassword",
-                            "Las nuevas contraseñas no coinciden."
-                        );
-                         TempData["Error"] =
-                        "nuevas contraseñas no coinciden ";
-                    }
+                    ModelState.AddModelError("ConfirmarPassword", "Las nuevas contraseñas no coinciden.");
+                    TempData["Error"] = "Las nuevas contraseñas no coinciden.";
                 }
 
                 if (!string.IsNullOrWhiteSpace(usuario.PasswordActual))
                 {
-                    string hashedPasswordActual =
-                        Convert.ToBase64String(
-                            KeyDerivation.Pbkdf2(
-                                password: usuario.PasswordActual,
-                                salt: Encoding.ASCII.GetBytes(
-                                    configuration["Salt"] ?? ""
-                                ),
-                                prf: KeyDerivationPrf.HMACSHA1,
-                                iterationCount: 1000,
-                                numBytesRequested: 256 / 8
-                            )
-                        );
+                    string hashedPasswordActual = HashPassword(usuario.PasswordActual);
 
                     if (hashedPasswordActual != usuarioActual.Password)
                     {
-                        ModelState.AddModelError(
-                            "PasswordActual",
-                            "La contraseña actual es incorrecta."
-                            
-                        );
-                        TempData["Error"] =
-                        "verifique la contraseña actual";
-
+                        ModelState.AddModelError("PasswordActual", "La contraseña actual es incorrecta.");
+                        TempData["Error"] = "Verifique la contraseña actual.";
                     }
                 }
 
-        
                 if (!ModelState.IsValid)
                 {
                     return View(usuario);
                 }
 
-     
-                usuario.Password =
-                    Convert.ToBase64String(
-                        KeyDerivation.Pbkdf2(
-                            password: usuario.NuevaPassword,
-                            salt: Encoding.ASCII.GetBytes(
-                                configuration["Salt"] ?? ""
-                            ),
-                            prf: KeyDerivationPrf.HMACSHA1,
-                            iterationCount: 1000,
-                            numBytesRequested: 256 / 8
-                        )
-                    );
+                usuario.Password = HashPassword(usuario.NuevaPassword);
             }
 
-         
             repositorioUsuario.Modificacion(usuario);
 
-         
+            // Actualizar Claim de Name y Claim de Avatar/Foto si aplica en las Cookie
             var identity = User.Identity as ClaimsIdentity;
-
             if (identity != null)
             {
-                var claimNombre =
-                    identity.FindFirst(ClaimTypes.Name);
+                var claimNombre = identity.FindFirst(ClaimTypes.Name);
+                if (claimNombre != null) identity.RemoveClaim(claimNombre);
 
-                if (claimNombre != null)
-                {
-                    identity.RemoveClaim(claimNombre);
-                }
-
-                identity.AddClaim(
-                    new Claim(
-                        ClaimTypes.Name,
-                        usuario.UserName
-                    )
-                );
+                identity.AddClaim(new Claim(ClaimTypes.Name, usuario.UserName));
 
                 await HttpContext.SignInAsync(
-                    "CookieAuth",
+                    CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(identity)
                 );
             }
 
-            TempData["Mensaje"] =
-                "Perfil actualizado correctamente.";
-
+            TempData["Mensaje"] = "Perfil actualizado correctamente.";
             return RedirectToAction("Perfil");
+        }
+
+        // --- MÉTODOS AUXILIARES ---
+
+        private string HashPassword(string password)
+        {
+            return Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: password,
+                salt: Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
+                prf: KeyDerivationPrf.HMACSHA1,
+                iterationCount: 1000,
+                numBytesRequested: 256 / 8
+            ));
+        }
+
+        private string GuardarAvatar(IFormFile file)
+        {
+            string folderPath = Path.Combine(environment.WebRootPath, "uploads", "avatars");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            string extension = Path.GetExtension(file.FileName);
+            string uniqueFileName = $"{Guid.NewGuid()}{extension}";
+            string filePath = Path.Combine(folderPath, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            return $"/uploads/avatars/{uniqueFileName}";
+        }
+
+        private void EliminarAvatarAnterior(string? avatarUrl)
+        {
+            if (!string.IsNullOrEmpty(avatarUrl))
+            {
+                string relativePath = avatarUrl.TrimStart('/');
+                string fullPath = Path.Combine(environment.WebRootPath, relativePath);
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
         }
     }
 }

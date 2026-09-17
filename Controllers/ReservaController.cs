@@ -57,16 +57,42 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
         }
 
-        // CREATE - GET
+// CREATE - GET
+[HttpGet]
+public IActionResult Create(int? idInmueble, DateTime? desde, DateTime? hasta)
+{
+    var reserva = new Reserva();
 
-        public IActionResult Create()
+    if (desde.HasValue) reserva.FechaInicio = desde.Value;
+    if (hasta.HasValue) reserva.FechaFin = hasta.Value;
+
+    //  viene un inmueble desde la vista de búsqueda
+    if (idInmueble.HasValue && idInmueble.Value > 0)
+    {
+        var inmueble = repo_Inmueble.ObtenerPorId(idInmueble.Value);
+        if (inmueble != null)
         {
-
-            CargarDesplegables();
-
-
-            return View();
+            reserva.IdInmueble = inmueble.IdInmueble;
+            reserva.MontoDiario = inmueble.PrecioAlquiler;
+            
+            
+            // Pasamos el porcentaje para que el JS de la vista calcule la seña automáticamente
+            ViewBag.PorcentajeReserva = inmueble.PorcentajeReserva;
+            
+          
+            reserva.Inmueble = inmueble; 
         }
+    }
+
+    // Cargas tus desplegables normalmente pasando el id preseleccionado
+    CargarDesplegables(0, reserva.IdInmueble);
+
+    return View(reserva);
+}
+
+
+
+
 
         // CREATE - POST
 
@@ -184,6 +210,8 @@ namespace Grupo18_Inmobiliaria.Controllers
                 // no confiar en el valor enviado por el navegador.
                 reserva.MontoDiario = inmueble.PrecioAlquiler;
 
+               
+               
                 // Crear reserva
                 repo_Reserva.Alta(reserva);
 
@@ -1004,6 +1032,26 @@ namespace Grupo18_Inmobiliaria.Controllers
 
             return View(inmuebles);
         }
+
+[HttpGet]
+public IActionResult ProximasATerminar(int? dias)
+{
+    IEnumerable<Reserva> reservas = new List<Reserva>();
+
+    // Solo consultamos si el usuario ingresó un valor válido (ej. 20)
+    if (dias.HasValue && dias.Value > 0)
+    {
+        reservas = repo_Reserva.ObtenerProximasATerminar(dias.Value);
+        ViewBag.DiasSeleccionados = dias.Value;
+    }
+
+    return View(reservas);
+}
+
+
+
+
+
 
 
     }

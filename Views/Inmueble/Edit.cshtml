@@ -4,73 +4,126 @@
     ViewData["Title"] = "Editar Inmueble";
 }
 
-<h2>Editar Inmueble</h2>
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Edit">
-            <input type="hidden" asp-for="IdInmueble" />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title mb-4">Editar Inmueble</h2>
 
-            <div class="form-group mb-3">
-                <label asp-for="Direccion" class="control-label"></label>
-                <input asp-for="Direccion" class="form-control" />
-                <span asp-validation-for="Direccion" class="text-danger"></span>
-            </div>
+                    <form id="formEditarInmueble" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="IdInmueble" />
 
-            <div class="form-group mb-3">
-                <label asp-for="Capacidad" class="control-label"></label>
-                <input asp-for="Capacidad" class="form-control" type="number" />
-                <span asp-validation-for="Capacidad" class="text-danger"></span>
-            </div>
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="IdTipoInmueble" class="control-label">Tipo de Inmueble</label>
-                <select asp-for="IdTipoInmueble" class="form-select" asp-items="ViewBag.TiposInmueble">
-                    <option value="">-- Seleccionar Tipo --</option>
-                </select>
-                <span asp-validation-for="IdTipoInmueble" class="text-danger"></span>
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Direccion" class="control-label fw-bold"></label>
+                            <input asp-for="Direccion" class="form-control" placeholder="Ej: Av. Illia 123" />
+                            <span asp-validation-for="Direccion" class="text-danger"></span>
+                        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="PrecioAlquiler" class="control-label">Precio de Alquiler</label>
-              <input asp-for="PrecioAlquiler" class="form-control" type="number" step="any" />
-                <span asp-validation-for="PrecioAlquiler" class="text-danger"></span>
-            </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label asp-for="IdTipoInmueble" class="control-label fw-bold">Tipo de Inmueble</label>
+                                <select asp-for="IdTipoInmueble" class="form-select" asp-items="ViewBag.TiposInmueble">
+                                    <option value="">-- Seleccionar Tipo --</option>
+                                </select>
+                                <span asp-validation-for="IdTipoInmueble" class="text-danger"></span>
+                            </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="IdPropietario" class="control-label">Propietario</label>
-                <select asp-for="IdPropietario" class="form-select" asp-items="ViewBag.Propietarios">
-                    <option value="">-- Seleccionar Propietario --</option>
-                </select>
-                <span asp-validation-for="IdPropietario" class="text-danger"></span>
-            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label asp-for="IdPropietario" class="control-label fw-bold">Propietario</label>
+                                <select asp-for="IdPropietario" class="form-select" asp-items="ViewBag.Propietarios">
+                                    <option value="">-- Seleccionar Propietario --</option>
+                                </select>
+                                <span asp-validation-for="IdPropietario" class="text-danger"></span>
+                            </div>
+                        </div>
 
-            <div class="row">
-                <div class="col-md-6 form-group mb-3">
-                    <label asp-for="Latitud" class="control-label"></label>
-                    <input asp-for="Latitud" class="form-control" type="number" step="any" />
-                    <span asp-validation-for="Latitud" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-4 form-group mb-3">
+                                <label asp-for="Capacidad" class="control-label fw-bold">Capacidad</label>
+                                <input asp-for="Capacidad" type="number" class="form-control" placeholder="Ej: 4" />
+                                <span asp-validation-for="Capacidad" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group mb-3">
+                                <label asp-for="PrecioAlquiler" class="control-label fw-bold">Precio ($)</label>
+                                <input asp-for="PrecioAlquiler" type="number" step="0.01" class="form-control"
+                                    placeholder="Ej: 150000" />
+                                <span asp-validation-for="PrecioAlquiler" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 form-group mb-3">
+                                <label asp-for="PorcentajeReserva" class="control-label fw-bold">Reserva (%)</label>
+                                <input asp-for="PorcentajeReserva" type="number" step="0.01" class="form-control"
+                                    placeholder="Ej: 10" />
+                                <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Selección y Previsualización de Imágenes -->
+                        <div class="card p-3 mb-3 bg-light border">
+                            <h5 class="fw-bold mb-2">Imágenes del Inmueble</h5>
+                            
+                            <!-- Muestra de imágenes existentes si la lista tiene elementos -->
+                            @if (Model.ListaImagenes != null && Model.ListaImagenes.Count > 0)
+                            {
+                                <label class="form-label fw-bold small text-muted mb-1">Imágenes Actuales:</label>
+                                <div class="d-flex flex-wrap gap-2 border p-2 bg-white rounded mb-3" style="min-height: 90px;">
+                                    @foreach (var img in Model.ListaImagenes)
+                                    {
+                                        <div class="position-relative" style="width: 80px; height: 80px;">
+                                            <img src="@img.Url" class="img-thumbnail w-100 h-100" style="object-fit: cover; border-radius: 6px;" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            <div class="form-group mb-3">
+                                <label for="inputImagenes" class="form-label text-muted small">Agregar nuevas fotos (opcional)</label>
+                                <input type="file" id="inputImagenes" name="imagenes" class="form-control" multiple accept="image/*" />
+                            </div>
+
+                            <label class="form-label fw-bold small text-muted">Previsualización de Nuevas Fotos:</label>
+                            <div id="contenedorPrevisualizacion"
+                                class="d-flex flex-wrap gap-2 border p-2 bg-white rounded" style="min-height: 90px;">
+                                <p class="text-muted small m-0 p-2" id="msgSinFotos">No se seleccionaron nuevas imágenes.</p>
+                            </div>
+                        </div>
+
+                        <!-- Mapa interactivo Leaflet -->
+                        <div class="form-group mb-3">
+                            <label class="control-label fw-bold">Ubicación en el mapa</label>
+                            <p class="text-muted small mb-1">Hacé clic sobre el mapa para modificar las coordenadas si es necesario.</p>
+                            <div id="mapa"
+                                style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #ced4da;">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label asp-for="Latitud" class="control-label fw-bold">Latitud</label>
+                                <input asp-for="Latitud" type="text" class="form-control bg-light" readonly />
+                                <span asp-validation-for="Latitud" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label asp-for="Longitud" class="control-label fw-bold">Longitud</label>
+                                <input asp-for="Longitud" type="text" class="form-control bg-light" readonly />
+                                <span asp-validation-for="Longitud" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">Actualizar Inmueble</button>
+                            <a asp-action="Index" class="btn btn-secondary px-4">Volver</a>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="col-md-6 form-group mb-3">
-                    <label asp-for="Longitud" class="control-label"></label>
-                    <input asp-for="Longitud" class="form-control" type="number" step="any" />
-                    <span asp-validation-for="Longitud" class="text-danger"></span>
-                </div>
             </div>
-
-            <div class="form-group form-check mb-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Estado" /> @Html.DisplayNameFor(model => model.Estado)
-                </label>
-            </div>
-
-            <div class="form-group mt-3">
-                <input type="submit" value="Guardar Cambios" class="btn btn-warning" />
-                <a asp-action="Index" class="btn btn-secondary">Volver</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -78,4 +131,99 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Configuración del Mapa Leaflet
+            const centroDefault = [-33.295000, -66.335000];
+            const inputLat = document.getElementById('Latitud');
+            const inputLng = document.getElementById('Longitud');
+
+            const map = L.map('mapa').setView(centroDefault, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            let marker = null;
+
+            function ubicarMarcador(lat, lng) {
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+                inputLat.value = lat.toFixed(6).replace(',', '.');
+                inputLng.value = lng.toFixed(6).replace(',', '.');
+            }
+
+            // Cargar coordenadas previas del Modelo si existen
+            if (inputLat.value && inputLng.value) {
+                const latVal = parseFloat(inputLat.value.replace(',', '.'));
+                const lngVal = parseFloat(inputLng.value.replace(',', '.'));
+                if (!isNaN(latVal) && !isNaN(lngVal)) {
+                    map.setView([latVal, lngVal], 15);
+                    ubicarMarcador(latVal, lngVal);
+                }
+            }
+
+            map.on('click', function (e) {
+                ubicarMarcador(e.latlng.lat, e.latlng.lng);
+            });
+
+            // 2. Previsualización de nuevas imágenes mediante FileReader
+            const inputImagenes = document.getElementById('inputImagenes');
+            const previewContainer = document.getElementById('contenedorPrevisualizacion');
+            const msgSinFotos = document.getElementById('msgSinFotos');
+
+            inputImagenes.addEventListener('change', function () {
+                previewContainer.innerHTML = '';
+                if (this.files && this.files.length > 0) {
+                    Array.from(this.files).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const imgDiv = document.createElement('div');
+                            imgDiv.className = 'position-relative';
+                            imgDiv.style.width = '80px';
+                            imgDiv.style.height = '80px';
+                            imgDiv.innerHTML = `<img src="${e.target.result}" class="img-thumbnail w-100 h-100" style="object-fit: cover; border-radius: 6px;" />`;
+                            previewContainer.appendChild(imgDiv);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    previewContainer.appendChild(msgSinFotos);
+                }
+            });
+
+            // 3. Envío del Formulario vía AJAX
+            const form = document.getElementById('formEditarInmueble');
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                if (window.jQuery && $(form).data('validator')) {
+                    if (!$(form).valid()) return;
+                }
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch('/Inmueble/EditAjax', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/Inmueble/Index';
+                    } else {
+                        const errorText = await response.text();
+                        alert("Error al actualizar la información.");
+                    }
+                } catch (err) {
+                    console.error("Error en la petición Ajax:", err);
+                    alert("Ocurrió un error al intentar enviar los datos.");
+                }
+            });
+        });
+    </script>
 }

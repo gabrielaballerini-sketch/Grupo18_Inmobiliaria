@@ -21,8 +21,8 @@ namespace Grupo18_Inmobiliaria.Models
             using var connection = new MySqlConnection(connectionString);
 
             string sql = """
-            INSERT INTO Usuarios(UserName,Password,RolUsuario,Estado)
-            VALUES(@UserName,@Password,@RolUsuario,@Estado);
+            INSERT INTO Usuarios(UserName,Password,RolUsuario,Estado, Avatar)
+            VALUES(@UserName,@Password,@RolUsuario,@Estado,@Avatar);
 
             SELECT LAST_INSERT_ID();
             """;
@@ -33,6 +33,7 @@ namespace Grupo18_Inmobiliaria.Models
             command.Parameters.AddWithValue("@Password", usuario.Password);
             command.Parameters.AddWithValue("@RolUsuario", (int)usuario.RolUsuario);
             command.Parameters.AddWithValue("@Estado", usuario.Estado);
+            command.Parameters.AddWithValue("@Avatar",usuario.Avatar);
 
             connection.Open();
 
@@ -72,7 +73,8 @@ namespace Grupo18_Inmobiliaria.Models
                 SET UserName = @UserName,
                     Password = @Password,
                     RolUsuario = @RolUsuario,
-                    Estado = @Estado
+                    Estado = @Estado,
+                    Avatar=@Avatar
                 WHERE IdUsuario = @IdUsuario;
                 """;
             using var command = new MySqlCommand(sql, connection);
@@ -82,6 +84,7 @@ namespace Grupo18_Inmobiliaria.Models
             command.Parameters.AddWithValue("@Password", usuario.Password);
             command.Parameters.AddWithValue("@RolUsuario", (int)usuario.RolUsuario); // Casteo del Enum a int
             command.Parameters.AddWithValue("@Estado", usuario.Estado);
+            command.Parameters.AddWithValue("@avatar", (object?)usuario.Avatar ?? DBNull.Value);
             command.Parameters.AddWithValue("@IdUsuario", usuario.IdUsuario);
 
             connection.Open();
@@ -115,7 +118,7 @@ namespace Grupo18_Inmobiliaria.Models
 
 
             string sql = $"""
-                     SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+                     SELECT IdUsuario, UserName, Password, RolUsuario, Estado,Avatar
                      FROM Usuarios
                      WHERE Estado = 1
                      LIMIT {tamPagina} 
@@ -139,7 +142,7 @@ namespace Grupo18_Inmobiliaria.Models
 
 
             string sql = $"""
-                 SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+                 SELECT IdUsuario, UserName, Password, RolUsuario, Estado,Avatar
                 FROM Usuarios
                 WHERE Estado = 0
                 LIMIT {tamPagina} 
@@ -185,7 +188,7 @@ namespace Grupo18_Inmobiliaria.Models
             using var connection = new MySqlConnection(connectionString);
 
             string sql = """
-                SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+                SELECT IdUsuario, UserName, Password, RolUsuario, Estado,Avatar
                 FROM Usuarios
                 WHERE IdUsuario = @IdUsuario;
                 """;
@@ -210,6 +213,9 @@ namespace Grupo18_Inmobiliaria.Models
                 Password = reader.GetString("Password"),
                 RolUsuario = (RolUsuario)reader.GetInt32("RolUsuario"), // Casteo del int de la BD al Enum
                 Estado = reader.GetBoolean("Estado"),
+                Avatar=reader.IsDBNull(reader.GetOrdinal("Avatar")) 
+                    ? null 
+                    : reader.GetString("Avatar"),
                 ListaReservas = new List<Reserva>() // Inicializada vacía 
             };
         }
@@ -221,7 +227,7 @@ namespace Grupo18_Inmobiliaria.Models
             using var connection = new MySqlConnection(connectionString);
 
             string sql = """
-        SELECT IdUsuario, UserName, Password, RolUsuario, Estado
+        SELECT IdUsuario, UserName, Password, RolUsuario, Estado,Avatar
         FROM Usuarios
         WHERE UserName = @UserName;
         """;
@@ -241,6 +247,18 @@ namespace Grupo18_Inmobiliaria.Models
 
             return usuario;
         }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     }

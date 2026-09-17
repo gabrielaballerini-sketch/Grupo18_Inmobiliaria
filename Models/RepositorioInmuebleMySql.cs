@@ -77,7 +77,7 @@ namespace Grupo18_Inmobiliaria.Models
                     Longitud = @longitud,
                     PrecioAlquiler = @precioAlquiler,
                     IdPropietario = @idPropietario,
-                    IdTipoInmueble = @idTipoInmueble
+                    IdTipoInmueble = @idTipoInmueble,
                     PorcentajeReserva = @porcentajeReserva
                 WHERE IdInmueble = @IdInmueble;";
 

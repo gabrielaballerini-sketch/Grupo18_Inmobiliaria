@@ -56,6 +56,22 @@ namespace Grupo18_Inmobiliaria.Controllers
                 ViewBag.Error = "El usuario se encuentra inactivo.";
                 return View();
             }
+
+          string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                    password: password,
+                    salt: Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
+                    prf: KeyDerivationPrf.HMACSHA1,
+                    iterationCount: 1000,
+                    numBytesRequested: 256 / 8
+                )
+            );
+
+            if (usuario.Password != hashed)
+            {
+                ViewBag.Error = "Usuario o contraseña incorrectos.";
+                return View();
+            }
+
              
 
             var claims = new List<Claim>

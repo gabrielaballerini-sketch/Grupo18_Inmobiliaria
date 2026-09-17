@@ -131,6 +131,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult DeleteConfirmed(int id)
         {
             repo.Baja(id); // Ejecuta el UPDATE Estado = 0 en MySQL
+         TempData["Mensaje"] = "Tipo de inmueble creado con éxito";
             return RedirectToAction("Index");
         }
 
@@ -152,7 +153,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
                 ViewBag.PaginaActual = pagina;
                 ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
-
+      
                 return View(inactivos);
             }
             catch (Exception ex)

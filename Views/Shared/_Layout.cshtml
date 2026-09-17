@@ -63,14 +63,14 @@
                                                 <i class="bi bi-list-ul me-1"></i> Listado de reservas
                                             </a>
                                         </li>
-                                        <li>
-                                            <a class="dropdown-item" asp-controller="Reserva" asp-action="Create">
-                                                <i class="bi bi-plus-circle me-1"></i> Nueva Reserva
+                                       <li>
+                                            <a class="dropdown-item" asp-controller="Inmueble" asp-action="Disponibles">
+                                                <i class="bi bi-calendar-check me-1"></i> Disponibles por Fecha
                                             </a>
                                         </li>
 
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Reserva" asp-action="Buscar">
+                                            <a class="dropdown-item" asp-controller="Reserva" asp-action="ProximasATerminar">
                                                 <i class="bi bi-search me-1"></i> Buscar Reservas
                                             </a>
                                         </li>
@@ -104,11 +104,7 @@
                                             </a>
                                         </li>
 
-                                        <li>
-                                            <a class="dropdown-item" asp-controller="Inmueble" asp-action="Disponibles">
-                                                <i class="bi bi-calendar-check me-1"></i> Disponibles por Fecha
-                                            </a>
-                                        </li>
+                                        
                                         <li>
                                             <hr class="dropdown-divider">
                                         </li>

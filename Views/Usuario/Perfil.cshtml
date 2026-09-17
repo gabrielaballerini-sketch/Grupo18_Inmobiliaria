@@ -13,170 +13,118 @@
                 <!-- ENCABEZADO -->
                 <div class="card-header bg-dark text-white text-center py-4">
 
-                    <i class="bi bi-person-circle display-4"></i>
+                    @if (!string.IsNullOrEmpty(Model?.Avatar))
+                    {
+                        <img src="@Model.Avatar"
+                             alt="@Model.UserName"
+                             class="rounded-circle img-thumbnail mb-2"
+                             style="width: 100px; height: 100px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-circle display-4"></i>
+                    }
 
-                    <h2 class="mt-2 mb-0">
-                        Mi perfil
-                    </h2>
-
-                    <p class="mb-0 mt-2">
-                        Datos de tu cuenta
-                    </p>
-
+                    <h2 class="mt-2 mb-0">Mi perfil</h2>
+                    <p class="mb-0 mt-2">Datos de tu cuenta</p>
                 </div>
 
                 <!-- CUERPO -->
                 <div class="card-body p-4">
 
-                    <form asp-controller="Usuario" asp-action="Perfil" method="post">
+                    <form asp-controller="Usuario" asp-action="Perfil" method="post" enctype="multipart/form-data">
 
                         @Html.AntiForgeryToken()
 
-                        <!-- MENSAJES DE VALIDACIÓN -->
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3">
-                        </div>
+                        <input type="hidden" asp-for="IdUsuario" />
+                        <input type="hidden" asp-for="Avatar" />
 
+                        <!-- MENSAJES DE VALIDACIÓN GENERALES -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- CAMBIAR AVATAR -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-image"></i>
+                                Cambiar imagen de perfil
+                            </label>
+                            <input type="file"
+                                   name="AvatarFile"
+                                   class="form-control"
+                                   accept="image/*" />
+                        </div>
 
                         <!-- NOMBRE DE USUARIO -->
                         <div class="mb-3">
-
                             <label asp-for="UserName" class="form-label fw-bold">
-
                                 <i class="bi bi-person"></i>
                                 Nombre de usuario
-
                             </label>
-
                             <input asp-for="UserName" class="form-control" />
-
-                            <span asp-validation-for="UserName" class="text-danger">
-                            </span>
-
+                            <span asp-validation-for="UserName" class="text-danger"></span>
                         </div>
-
 
                         <!-- ROL -->
                         <div class="mb-3">
-
                             <label class="form-label fw-bold">
-
                                 <i class="bi bi-shield-check"></i>
                                 Rol
-
                             </label>
-
                             <input type="text" class="form-control" value="@Model.RolUsuario" readonly />
-
                         </div>
-
 
                         <!-- ESTADO -->
                         <div class="mb-3">
-
                             <label class="form-label fw-bold">
-
                                 <i class="bi bi-check-circle"></i>
                                 Estado
-
                             </label>
-
-                            <input type="text" class="form-control" value="@(Model.Estado ? "Activo" : "Inactivo")"
-                                   readonly />
-
+                            <input type="text" class="form-control" value="@(Model.Estado ? "Activo" : "Inactivo")" readonly />
                         </div>
-
 
                         <hr class="my-4" />
 
-
-                        <!-- CAMBIO DE CONTRASEÑA -->
+                        <!-- CAMBIO DE CONTRASEÑA (OPCIONAL) -->
                         <h5 class="mb-3">
-
                             <i class="bi bi-lock"></i>
                             Cambiar contraseña
-
                         </h5>
 
-                        <p class="text-muted">
-                            Si no querés cambiar tu contraseña,
-                            dejá estos campos vacíos.
+                        <p class="text-muted small">
+                            Si solo deseas cambiar la imagen o el nombre de usuario, deja estos campos en blanco.
                         </p>
-
 
                         <!-- CONTRASEÑA ACTUAL -->
                         <div class="mb-3">
-
-                            <label asp-for="PasswordActual" class="form-label fw-bold">
-
-                                Contraseña actual
-
-                            </label>
-
-                            <input asp-for="PasswordActual" type="password" class="form-control"
-                                   placeholder="Ingresá tu contraseña actual" />
-
-                            <span asp-validation-for="PasswordActual" class="text-danger">
-                            </span>
-
+                            <label asp-for="PasswordActual" class="form-label fw-bold">Contraseña actual</label>
+                            <input asp-for="PasswordActual" type="password" class="form-control" placeholder="Opcional" />
+                            <span asp-validation-for="PasswordActual" class="text-danger"></span>
                         </div>
-
 
                         <!-- NUEVA CONTRASEÑA -->
                         <div class="mb-3">
-
-                            <label asp-for="NuevaPassword" class="form-label fw-bold">
-
-                                Nueva contraseña
-
-                            </label>
-
-                            <input asp-for="NuevaPassword" type="password" class="form-control"
-                                   placeholder="Ingresá la nueva contraseña" />
-
-                            <span asp-validation-for="NuevaPassword" class="text-danger">
-                            </span>
-
+                            <label asp-for="NuevaPassword" class="form-label fw-bold">Nueva contraseña</label>
+                            <input asp-for="NuevaPassword" type="password" class="form-control" placeholder="Opcional" />
+                            <span asp-validation-for="NuevaPassword" class="text-danger"></span>
                         </div>
-
 
                         <!-- CONFIRMAR CONTRASEÑA -->
                         <div class="mb-3">
-
-                            <label asp-for="ConfirmarPassword" class="form-label fw-bold">
-
-                                Confirmar nueva contraseña
-
-                            </label>
-
-                            <input asp-for="ConfirmarPassword" type="password" class="form-control"
-                                   placeholder="Repetí la nueva contraseña" />
-
-                            <span asp-validation-for="ConfirmarPassword" class="text-danger">
-                            </span>
-
+                            <label asp-for="ConfirmarPassword" class="form-label fw-bold">Confirmar nueva contraseña</label>
+                            <input asp-for="ConfirmarPassword" type="password" class="form-control" placeholder="Opcional" />
+                            <span asp-validation-for="ConfirmarPassword" class="text-danger"></span>
                         </div>
-
 
                         <hr class="my-4" />
 
-
                         <!-- BOTONES -->
                         <div class="d-flex justify-content-between">
-
                             <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
-
-                                <i class="bi bi-arrow-left"></i>
-                                Volver
-
+                                <i class="bi bi-arrow-left"></i> Volver
                             </a>
-
                             <button type="submit" class="btn btn-primary">
-
-                                <i class="bi bi-save"></i>
-                                Guardar cambios
-
+                                <i class="bi bi-save"></i> Guardar cambios
                             </button>
-
                         </div>
 
                     </form>
@@ -190,7 +138,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

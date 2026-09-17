@@ -72,6 +72,7 @@ namespace Grupo18_Inmobiliaria.Controllers
 
 
             repo.Alta(propietario);
+            TempData["Mensaje"]="Propietario creado con exito";
             return RedirectToAction(nameof(Index));
         }
 
@@ -139,6 +140,7 @@ namespace Grupo18_Inmobiliaria.Controllers
         public IActionResult DeleteConfirmed(int id)
         {
             repo.Baja(id); // Ejecuta el UPDATE Estado = 0 en MySQL
+               TempData["Mensaje"]="Propietario dado de baja con exito";
             return RedirectToAction("Index");
         }
      

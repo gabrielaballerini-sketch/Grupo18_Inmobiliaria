@@ -65,6 +65,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             }
 
             repo.Alta(inquilino);
+            TempData["Mensaje"]="Inquilino creado con exito";
             return RedirectToAction(nameof(Index));
         }
 
