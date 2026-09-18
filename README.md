@@ -35,6 +35,16 @@ Agregá la siguiente cadena de conexión en tu archivo `appsettings.json`:
 }
 ```
 ---
+## Credenciales de Acceso (Seed Data)
+El sistema incluye usuarios precargados para probar ambos roles:
+Administrador:
+Email: admin@inmobiliaria.com
+Contraseña: admin1234
+Empleado:
+Email: empleado@inmobiliaria.com
+Contraseña: empleado123
+
+
 ## Cómo Ejecutar el Proyecto
 1. Clonar el repositorio y abrir la solución en **Visual Studio**.
 2. Verificar que la cadena de conexión en `appsettings.json` apunte correctamente a tu servidor local de MySQL.

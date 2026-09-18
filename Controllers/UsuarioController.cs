@@ -283,7 +283,7 @@ namespace Grupo18_Inmobiliaria.Controllers
             else
             {
                 // Mantiene el avatar actual
-                usuario.Avatar= usuarioActual.Avatar;
+                usuario.Avatar = usuarioActual.Avatar;
             }
 
             // --- LÓGICA DE CONTRASEÑA ---
@@ -337,19 +337,21 @@ namespace Grupo18_Inmobiliaria.Controllers
             repositorioUsuario.Modificacion(usuario);
 
             // Actualizar Claim de Name y Claim de Avatar/Foto si aplica en las Cookie
-            var identity = User.Identity as ClaimsIdentity;
-            if (identity != null)
-            {
-                var claimNombre = identity.FindFirst(ClaimTypes.Name);
-                if (claimNombre != null) identity.RemoveClaim(claimNombre);
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario.ToString()),
+        new Claim(ClaimTypes.Name, usuario.UserName),
+        new Claim(ClaimTypes.Role, usuario.RolUsuario.ToString()), // Asegúrate de mantener el rol
+        new Claim("Avatar", usuario.Avatar ?? "") // Si guardas el avatar en los claims para mostrarlo arriba
+    };
 
-                identity.AddClaim(new Claim(ClaimTypes.Name, usuario.UserName));
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(identity)
-                );
-            }
+            // Se pasa el Esquema como primer parámetro
+            await HttpContext.SignInAsync(
+                "CookieAuth",
+                new ClaimsPrincipal(claimsIdentity)
+            );
 
             TempData["Mensaje"] = "Perfil actualizado correctamente.";
             return RedirectToAction("Perfil");
