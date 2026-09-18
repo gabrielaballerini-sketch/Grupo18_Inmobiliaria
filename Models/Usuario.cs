@@ -4,6 +4,9 @@ namespace Grupo18_Inmobiliaria.Models
     public class Usuario
     {
         public int IdUsuario { get; set; }
+
+        [Required(ErrorMessage = "El correo electrónico es obligatorio")]
+        [EmailAddress(ErrorMessage = "El formato ingresado no es un correo electrónico válido")]
         public string UserName { get; set; } = "";
 
         public string Password { get; set; } = "";
