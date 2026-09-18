@@ -22,7 +22,10 @@ El código completo de creación de tablas y datos iniciales (seed data) se encu
 
 Para configurarla:
 1. Creá una base de datos en MySQL llamada `inmobiliaria_g18`.
-2. Importá o ejecutá el script contenido en `inmobiliaria_g18.sql`.
+2. Abrir un editor SQL 
+3. Escribir use inmobiliaria_g18; para decirle que base vamos a utilizar
+4. Arrastrar el archivo al SQL editor o copiar y pegar ejecutar todo el editor SQL 
+
 
 ---
 
@@ -32,6 +35,7 @@ Agregá la siguiente cadena de conexión en tu archivo `appsettings.json`:
 ```json
 "ConnectionStrings": {
     "DefaultConnection": "Server=localhost; Port=3306; Database=inmobiliaria_g18; User=root; Password=;"
+    segun corresponda el password de tu MySql en el caso de no tener ninguno dejar vacio
 }
 ```
 ---
